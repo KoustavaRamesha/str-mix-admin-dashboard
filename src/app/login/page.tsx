@@ -1,9 +1,8 @@
-
 "use client"
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { Construction, Loader2, Lock, AlertCircle, Info } from "lucide-react"
+import { Construction, Loader2, Lock, AlertCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -24,7 +23,7 @@ export default function LoginPage() {
   const auth = useAuth()
   const { user } = useUser()
 
-  // Redirect if already logged in - moved to useEffect to avoid render-phase updates
+  // Redirect if already logged in
   useEffect(() => {
     if (user) {
       router.push('/admin')
@@ -169,19 +168,8 @@ export default function LoginPage() {
             </div>
           </CardContent>
           <CardFooter className="bg-muted/10 border-t p-6 flex flex-col gap-4">
-            <div className="w-full space-y-4">
-              <div className="flex items-start gap-3 bg-blue-500/10 p-4 border border-blue-500/30">
-                <Info className="h-4 w-4 text-blue-400 shrink-0 mt-0.5" />
-                <div className="space-y-1">
-                  <p className="text-[10px] font-bold uppercase text-blue-400 leading-tight">Setup Instructions</p>
-                  <div className="text-[9px] text-muted-foreground leading-relaxed space-y-1">
-                    <p>1. <strong className="text-foreground">Authentication</strong>: Anyone can sign in with Google or Email (Authentication).</p>
-                    <p>2. <strong className="text-foreground">Authorization</strong>: To grant <strong className="text-primary italic">Access</strong>, copy the user's UID and create a document in the <code className="text-primary font-mono lowercase">roles_admin/[UID]</code> Firestore collection.</p>
-                    <p>3. Without step 2, users will be authenticated but <strong className="text-destructive">Access Denied</strong> from the dashboard.</p>
-                  </div>
-                </div>
-              </div>
-              <div className="flex justify-between w-full text-[10px] font-bold uppercase tracking-widest text-muted-foreground pt-2">
+            <div className="w-full">
+              <div className="flex justify-between w-full text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
                 <span>v1.4.2-stable</span>
                 <Link href="/" className="hover:text-primary underline transition-colors">Return to Site</Link>
               </div>
