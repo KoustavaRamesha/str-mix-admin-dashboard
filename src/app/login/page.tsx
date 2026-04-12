@@ -60,6 +60,12 @@ export default function LoginPage() {
     try {
       await signInWithPopup(auth, provider)
     } catch (err: any) {
+      // Gracefully handle if user closes the popup
+      if (err.code === 'auth/popup-closed-by-user') {
+        setGoogleLoading(false)
+        return
+      }
+      
       console.error("Google Login Failure:", err)
       setError(err.message || "Failed to authenticate with Google.")
       setGoogleLoading(false)
@@ -90,7 +96,7 @@ export default function LoginPage() {
             {error && (
               <Alert variant="destructive" className="rounded-none border-2 border-destructive animate-in fade-in slide-in-from-top-2">
                 <AlertCircle className="h-4 w-4" />
-                <AlertTitle className="text-[10px] font-bold uppercase tracking-widest text-destructive">Security Breach Filter</AlertTitle>
+                <AlertTitle className="text-[10px] font-bold uppercase tracking-widest text-destructive">Authentication Error</AlertTitle>
                 <AlertDescription className="text-xs font-medium">
                   {error}
                 </AlertDescription>
