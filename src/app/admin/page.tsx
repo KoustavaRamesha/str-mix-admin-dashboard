@@ -1,6 +1,7 @@
 
 "use client"
 
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { 
   Users, 
@@ -45,6 +46,12 @@ const recentActivity = [
 ]
 
 export default function AdminDashboard() {
+  const [lastRefresh, setLastRefresh] = useState<string>("")
+
+  useEffect(() => {
+    setLastRefresh(new Date().toLocaleTimeString())
+  }, [])
+
   const stats = [
     { label: "Site Visitors", value: "12,842", icon: Users, trend: "+12.5%", color: "text-primary" },
     { label: "Blog Posts", value: "24 / 8", icon: FileText, trend: "Published / Drafts", color: "text-blue-400" },
@@ -53,7 +60,7 @@ export default function AdminDashboard() {
   ]
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 max-w-[1440px] mx-auto">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
         <div>
           <h1 className="text-4xl font-headline font-bold uppercase tracking-tighter">Command <span className="text-primary">Center</span></h1>
@@ -61,7 +68,7 @@ export default function AdminDashboard() {
         </div>
         <div className="text-right">
           <p className="text-[10px] font-bold uppercase text-muted-foreground">Last Refresh</p>
-          <p className="text-xs font-mono">{new Date().toLocaleTimeString()}</p>
+          <p className="text-xs font-mono">{lastRefresh || "--:--:--"}</p>
         </div>
       </div>
 
