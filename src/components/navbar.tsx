@@ -19,7 +19,12 @@ const navItems = [
 
 export function Navbar() {
   const [isOpen, setIsOpen] = React.useState(false)
+  const [mounted, setMounted] = React.useState(false)
   const pathname = usePathname()
+
+  React.useEffect(() => {
+    setMounted(true)
+  }, [])
 
   const isAdminPath = pathname?.startsWith('/admin')
 
@@ -28,8 +33,10 @@ export function Navbar() {
   return (
     <nav className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto px-4 h-24 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-3">
-          <Construction className="h-8 w-8 text-primary" />
+        <Link href="/" className="flex items-center gap-3 group">
+          <div className="h-8 w-8 text-primary transition-transform group-hover:scale-110">
+            <Construction className="h-full w-full" />
+          </div>
           <span className="font-headline text-2xl md:text-3xl font-bold tracking-tighter uppercase">
             STR <span className="text-primary">mix</span>
           </span>
@@ -52,14 +59,14 @@ export function Navbar() {
           <Button asChild variant="outline" size="lg" className="gap-2 border-primary/50 hover:bg-primary/10 rounded-none h-12 px-6 font-bold uppercase text-xs">
             <Link href="/login">
               <LogIn className="h-5 w-5" />
-              Admin
+              Admin Access
             </Link>
           </Button>
         </div>
 
         {/* Mobile Toggle */}
         <button
-          className="md:hidden text-foreground"
+          className="md:hidden text-foreground p-2"
           onClick={() => setIsOpen(!isOpen)}
           aria-label="Toggle Menu"
         >
@@ -68,7 +75,7 @@ export function Navbar() {
       </div>
 
       {/* Mobile Nav */}
-      {isOpen && (
+      {mounted && isOpen && (
         <div className="md:hidden border-b bg-background p-6 flex flex-col gap-6 animate-in slide-in-from-top-4">
           {navItems.map((item) => (
             <Link
@@ -83,7 +90,7 @@ export function Navbar() {
               {item.name}
             </Link>
           ))}
-          <Button asChild variant="default" className="w-full h-14 rounded-none font-bold uppercase">
+          <Button asChild variant="default" className="w-full h-14 rounded-none font-bold uppercase bg-primary text-primary-foreground">
             <Link href="/login" onClick={() => setIsOpen(false)}>Admin Portal Access</Link>
           </Button>
         </div>

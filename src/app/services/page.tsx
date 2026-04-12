@@ -50,8 +50,8 @@ export default function ServicesPage() {
     <div className="flex flex-col min-h-screen">
       <Navbar />
       <main className="flex-grow">
-        {/* Hero */}
-        <section className="py-32 industrial-grid border-b-2 border-muted">
+        {/* Header Hero */}
+        <section className="py-32 industrial-grid border-b-2 border-muted bg-card">
           <div className="container">
             <h1 className="text-7xl md:text-[10rem] font-headline font-bold uppercase tracking-tighter leading-[0.8] mb-10">
               Our <span className="text-primary">Services</span>
