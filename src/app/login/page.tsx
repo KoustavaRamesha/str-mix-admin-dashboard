@@ -175,9 +175,9 @@ export default function LoginPage() {
                 <div className="space-y-1">
                   <p className="text-[10px] font-bold uppercase text-blue-400 leading-tight">Setup Instructions</p>
                   <div className="text-[9px] text-muted-foreground leading-relaxed space-y-1">
-                    <p>1. Go to your <strong className="text-foreground">Firebase Console</strong>.</p>
-                    <p>2. Enable <strong className="text-foreground">Email/Password</strong> and <strong className="text-foreground">Google</strong> in Authentication providers.</p>
-                    <p>3. In Firestore, create a document in <code className="text-primary font-mono lowercase">roles_admin/[UID]</code> where [UID] is your unique user ID.</p>
+                    <p>1. <strong className="text-foreground">Authentication</strong>: Anyone can sign in with Google or Email (Authentication).</p>
+                    <p>2. <strong className="text-foreground">Authorization</strong>: To grant <strong className="text-primary italic">Access</strong>, copy the user's UID and create a document in the <code className="text-primary font-mono lowercase">roles_admin/[UID]</code> Firestore collection.</p>
+                    <p>3. Without step 2, users will be authenticated but <strong className="text-destructive">Access Denied</strong> from the dashboard.</p>
                   </div>
                 </div>
               </div>

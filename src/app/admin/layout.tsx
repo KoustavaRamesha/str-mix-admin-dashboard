@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -14,7 +15,8 @@ import {
   ChevronRight,
   Image as ImageIcon,
   Users as UsersIcon,
-  Loader2
+  Loader2,
+  ShieldAlert
 } from "lucide-react"
 import { 
   Sidebar, 
@@ -30,8 +32,10 @@ import {
   SidebarInset
 } from "@/components/ui/sidebar"
 import { Separator } from "@/components/ui/separator"
-import { useUser, useAuth } from "@/firebase"
+import { Button } from "@/components/ui/button"
+import { useUser, useAuth, useFirestore, useDoc, useMemoFirebase } from "@/firebase"
 import { signOut } from "firebase/auth"
+import { doc } from "firebase/firestore"
 
 const adminNav = [
   { name: "Overview", href: "/admin", icon: LayoutDashboard },
@@ -47,6 +51,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const router = useRouter()
   const { user, isUserLoading } = useUser()
   const auth = useAuth()
+  const db = useFirestore()
+
+  const adminRoleRef = useMemoFirebase(() => {
+    if (!user) return null;
+    return doc(db, 'roles_admin', user.uid);
+  }, [db, user]);
+
+  const { data: adminRole, isLoading: isAdminRoleLoading } = useDoc(adminRoleRef);
 
   React.useEffect(() => {
     if (!isUserLoading && !user) {
@@ -59,18 +71,48 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     router.push('/login')
   }
 
-  if (isUserLoading) {
+  if (isUserLoading || (user && isAdminRoleLoading)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background industrial-grid">
         <div className="flex flex-col items-center gap-4">
           <Loader2 className="h-12 w-12 animate-spin text-primary" />
-          <p className="text-xs font-bold uppercase tracking-[0.3em] text-muted-foreground">Initializing Command Center...</p>
+          <p className="text-xs font-bold uppercase tracking-[0.3em] text-muted-foreground">Verifying Authorization...</p>
         </div>
       </div>
     )
   }
 
   if (!user) return null
+
+  // If user is logged in but has no admin record in Firestore
+  if (!adminRole && !isAdminRoleLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background industrial-grid p-4 text-center">
+        <div className="max-w-md space-y-6 animate-in fade-in zoom-in duration-500">
+          <div className="flex justify-center">
+            <div className="h-20 w-20 bg-destructive/10 border-2 border-destructive flex items-center justify-center">
+              <ShieldAlert className="h-10 w-10 text-destructive" />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <h1 className="text-3xl font-headline font-bold uppercase tracking-tighter">Access <span className="text-destructive">Denied</span></h1>
+            <p className="text-muted-foreground text-sm font-bold uppercase tracking-widest leading-relaxed">
+              Authentication successful, but your account is not registered in the 'roles_admin' registry.
+            </p>
+          </div>
+          <div className="pt-4 space-y-4">
+            <div className="p-4 bg-muted/20 border border-muted text-left">
+              <p className="text-[10px] font-bold uppercase text-muted-foreground mb-1">Your Unique ID (UID):</p>
+              <code className="text-[10px] font-mono break-all text-primary">{user.uid}</code>
+            </div>
+            <Button onClick={handleLogout} variant="outline" className="w-full rounded-none uppercase font-bold text-[10px] tracking-widest">
+              Exit Portal
+            </Button>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <SidebarProvider>
