@@ -1,3 +1,52 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "hero-bg",
+      "description": "Industrial construction site with concrete structures",
+      "imageUrl": "https://picsum.photos/seed/solid1/1920/1080",
+      "imageHint": "industrial construction"
+    },
+    {
+      "id": "service-foundation",
+      "description": "Concrete foundation pouring",
+      "imageUrl": "https://picsum.photos/seed/solid2/600/400",
+      "imageHint": "concrete foundation"
+    },
+    {
+      "id": "service-decorative",
+      "description": "Decorative stamped concrete patio",
+      "imageUrl": "https://picsum.photos/seed/solid3/600/400",
+      "imageHint": "stamped concrete"
+    },
+    {
+      "id": "service-repair",
+      "description": "Concrete crack repair work",
+      "imageUrl": "https://picsum.photos/seed/solid4/600/400",
+      "imageHint": "concrete repair"
+    },
+    {
+      "id": "project-skyscraper",
+      "description": "Modern skyscraper concrete shell",
+      "imageUrl": "https://picsum.photos/seed/solid5/800/600",
+      "imageHint": "modern architecture"
+    },
+    {
+      "id": "project-bridge",
+      "description": "Massive concrete bridge pillars",
+      "imageUrl": "https://picsum.photos/seed/solid6/800/600",
+      "imageHint": "concrete bridge"
+    },
+    {
+      "id": "blog-1",
+      "description": "Close up of wet concrete texture",
+      "imageUrl": "https://picsum.photos/seed/solid7/800/500",
+      "imageHint": "concrete texture"
+    },
+    {
+      "id": "blog-2",
+      "description": "Engineer reviewing architectural plans",
+      "imageUrl": "https://picsum.photos/seed/solid8/800/500",
+      "imageHint": "construction engineer"
+    }
+  ]
 }
