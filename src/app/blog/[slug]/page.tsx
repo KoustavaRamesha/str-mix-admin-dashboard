@@ -1,33 +1,57 @@
 
+"use client"
+
 import Image from "next/image"
 import Link from "next/link"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
-import { PlaceHolderImages } from "@/lib/placeholder-images"
-import { Calendar, User, ChevronLeft, Share2, Tag } from "lucide-react"
+import { Calendar, User, ChevronLeft, Share2, Tag, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { useFirestore, useCollection, useMemoFirebase } from "@/firebase"
+import { collection, query, where, limit } from "firebase/firestore"
+import { use } from "react"
 
-export default async function BlogPostPage({ params }: { params: { slug: string } }) {
-  // In a real app, you'd fetch based on slug. Mocking here.
-  const post = {
-    title: "Understanding Concrete Curing Times",
-    content: `
-      Concrete doesn't just "dry"—it cures. Curing is a chemical process called hydration where the cement and water bond to form a strong, crystalline structure.
+export default function BlogPostPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = use(params);
+  const db = useFirestore()
+  
+  const postQuery = useMemoFirebase(() => {
+    return query(
+      collection(db, 'published_posts'),
+      where('slug', '==', slug),
+      limit(1)
+    )
+  }, [db, slug]);
 
-      ### The 28-Day Standard
-      While most concrete reaches enough strength to be walked on within 24-48 hours, the industry standard for full strength testing is 28 days. By this point, the concrete has reached about 99% of its design capacity.
+  const { data: posts, isLoading } = useCollection(postQuery);
+  const post = posts?.[0];
 
-      ### Factors Influencing Cure Time
-      1. **Temperature:** Extreme cold slows hydration significantly.
-      2. **Moisture:** Concrete needs to stay wet to cure properly.
-      3. **Mix Design:** Chemical additives (accelerators) can speed up the initial set.
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <Navbar />
+        <main className="flex-grow flex items-center justify-center">
+          <Loader2 className="h-12 w-12 animate-spin text-primary" />
+        </main>
+        <Footer />
+      </div>
+    )
+  }
 
-      Proper curing is the difference between a structure that lasts 10 years and one that lasts 100. At STR mix, we utilize moisture-retaining blankets and chemical sealants to ensure every pour reaches its maximum potential strength.
-    `,
-    date: "Oct 24, 2023",
-    author: "Eng. Mark Steel",
-    category: "Technical",
-    image: PlaceHolderImages.find(i => i.id === 'blog-1')?.imageUrl
+  if (!post) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <Navbar />
+        <main className="flex-grow flex flex-col items-center justify-center py-24 industrial-grid">
+          <h1 className="text-4xl font-headline font-bold uppercase mb-4 text-primary">Post Not Found</h1>
+          <p className="text-muted-foreground mb-8">The requested industrial intel has been moved or deleted.</p>
+          <Button asChild variant="outline" className="rounded-none font-bold uppercase">
+            <Link href="/blog">Return to Newsfeed</Link>
+          </Button>
+        </main>
+        <Footer />
+      </div>
+    )
   }
 
   return (
@@ -42,7 +66,7 @@ export default async function BlogPostPage({ params }: { params: { slug: string 
           <article className="bg-card border-2 border-muted overflow-hidden shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-700">
             <div className="relative h-[400px]">
               <Image
-                src={post.image || "https://picsum.photos/seed/post/1200/800"}
+                src={post.featuredImage || "https://picsum.photos/seed/post/1200/800"}
                 alt={post.title}
                 fill
                 className="object-cover"
@@ -64,11 +88,13 @@ export default async function BlogPostPage({ params }: { params: { slug: string 
                 <div className="flex gap-8">
                   <div className="flex items-center gap-2">
                     <Calendar className="h-4 w-4 text-primary" />
-                    <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">{post.date}</span>
+                    <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
+                      {post.publishedAt ? new Date(post.publishedAt).toLocaleDateString() : 'Draft'}
+                    </span>
                   </div>
                   <div className="flex items-center gap-2">
                     <User className="h-4 w-4 text-primary" />
-                    <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">{post.author}</span>
+                    <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">{post.authorName || 'Staff'}</span>
                   </div>
                 </div>
                 <Button variant="ghost" size="sm" className="gap-2 uppercase text-[10px] font-bold">
@@ -77,7 +103,7 @@ export default async function BlogPostPage({ params }: { params: { slug: string 
               </div>
 
               <div className="prose prose-invert max-w-none prose-headings:font-headline prose-headings:uppercase prose-headings:tracking-tighter prose-p:text-muted-foreground prose-p:leading-relaxed text-lg">
-                {post.content.split('\n').map((para, i) => {
+                {post.body.split('\n').map((para: string, i: number) => {
                   if (para.startsWith('###')) {
                     return <h3 key={i} className="text-2xl font-bold mt-8 mb-4">{para.replace('###', '')}</h3>
                   }
@@ -90,9 +116,9 @@ export default async function BlogPostPage({ params }: { params: { slug: string 
                   <Tag className="h-4 w-4" />
                   <span className="text-[10px] font-bold uppercase tracking-widest">Keywords:</span>
                 </div>
-                {["Structural", "Engineering", "Curing", "ASTM"].map(t => (
-                  <span key={t} className="text-[10px] font-bold uppercase tracking-widest bg-muted/20 px-2 py-1 border border-muted hover:border-primary transition-colors cursor-pointer">{t}</span>
-                ))}
+                {post.category && (
+                  <span className="text-[10px] font-bold uppercase tracking-widest bg-muted/20 px-2 py-1 border border-muted hover:border-primary transition-colors cursor-pointer">{post.category}</span>
+                )}
               </div>
             </div>
           </article>

@@ -4,7 +4,7 @@
 import { useState } from "react"
 import { adminDraftBlogContentGeneration } from "@/ai/flows/admin-draft-blog-content-generation-flow"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
@@ -14,7 +14,6 @@ import {
   Loader2, 
   Plus, 
   PenSquare, 
-  Eye, 
   Search, 
   Filter, 
   MoreVertical,
@@ -22,7 +21,6 @@ import {
   Save,
   Globe,
   Settings as SettingsIcon,
-  Tag,
   Layout,
   BarChart3,
   ImageIcon,
@@ -40,12 +38,8 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import Image from "next/image"
-
-const mockPosts = [
-  { id: 1, title: "Concrete Curing Times", slug: "concrete-curing-times", status: "published", category: "Technical", views: "1.2k", date: "2023-10-24" },
-  { id: 2, title: "Sustainable Mix Designs", slug: "sustainable-mix-designs", status: "draft", category: "Innovation", views: "0", date: "2023-11-12" },
-  { id: 3, title: "Maintenance Tips", slug: "maintenance-tips", status: "scheduled", category: "Maintenance", views: "0", date: "2023-12-05" },
-]
+import { useFirestore, useCollection, useMemoFirebase, useUser } from "@/firebase"
+import { collection, doc, setDoc, deleteDoc, serverTimestamp } from "firebase/firestore"
 
 const mockMedia = [
   { id: 1, url: "https://picsum.photos/seed/solid1/400/300", name: "foundation_pour.jpg" },
@@ -58,14 +52,13 @@ export default function BlogManagement() {
   const [view, setView] = useState<'list' | 'edit'>('list')
   const [topic, setTopic] = useState("")
   const [loadingAi, setLoadingAi] = useState(false)
-  const [draft, setDraft] = useState<{ 
-    title: string; 
-    body: string; 
-    summary: string;
-    featuredImage?: string;
-    scheduledDate?: string;
-  } | null>(null)
+  const [draft, setDraft] = useState<any>(null)
   const { toast } = useToast()
+  const db = useFirestore()
+  const { user } = useUser()
+
+  const postsQuery = useMemoFirebase(() => collection(db, 'admin_posts'), [db]);
+  const { data: posts, isLoading: postsLoading } = useCollection(postsQuery);
 
   const handleGenerateDraft = async () => {
     if (!topic) {
@@ -76,9 +69,14 @@ export default function BlogManagement() {
     try {
       const result = await adminDraftBlogContentGeneration({ topic })
       setDraft({
-        ...result,
+        title: result.title,
+        body: result.body,
+        summary: result.summary,
+        slug: result.title.toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g, ''),
         featuredImage: "",
-        scheduledDate: ""
+        scheduledDate: "",
+        category: "Technical",
+        status: "draft"
       })
       toast({ title: "Draft Generated", description: "AI has successfully prepared a blog post draft." })
       setView('edit')
@@ -94,13 +92,64 @@ export default function BlogManagement() {
     setDraft({ ...draft, [key]: value })
   }
 
-  const handleSaveDraft = () => {
-    toast({ title: "Draft Saved", description: "Content and metadata persistent across session." })
+  const handleSaveDraft = async () => {
+    if (!draft || !user) return
+    const postId = draft.id || doc(collection(db, 'admin_posts')).id;
+    const postRef = doc(db, 'admin_posts', postId);
+    
+    const postData = {
+      ...draft,
+      id: postId,
+      authorId: user.uid,
+      authorName: user.displayName || user.email,
+      updatedAt: new Date().toISOString(),
+      createdAt: draft.createdAt || new Date().toISOString(),
+    };
+
+    try {
+      await setDoc(postRef, postData, { merge: true });
+      setDraft(postData);
+      toast({ title: "Draft Saved", description: "Content synchronized with Firestore." })
+    } catch (e) {
+      toast({ variant: "destructive", title: "Save Failed", description: "Could not save to database." })
+    }
   }
 
-  const handlePublish = () => {
-    toast({ title: "Published Successfully", description: "Post is now live on the public newsfeed." })
-    setView('list')
+  const handlePublish = async () => {
+    if (!draft || !user) return
+    const postId = draft.id || doc(collection(db, 'admin_posts')).id;
+    const adminRef = doc(db, 'admin_posts', postId);
+    const publicRef = doc(db, 'published_posts', postId);
+    
+    const postData = {
+      ...draft,
+      id: postId,
+      status: 'published',
+      authorId: user.uid,
+      authorName: user.displayName || user.email,
+      publishedAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      createdAt: draft.createdAt || new Date().toISOString(),
+    };
+
+    try {
+      await setDoc(adminRef, postData, { merge: true });
+      await setDoc(publicRef, postData, { merge: true });
+      toast({ title: "Published Successfully", description: "Post is now live on the public newsfeed." })
+      setView('list')
+    } catch (e) {
+      toast({ variant: "destructive", title: "Publish Failed", description: "Check your permissions." })
+    }
+  }
+
+  const handleDelete = async (postId: string) => {
+    try {
+      await deleteDoc(doc(db, 'admin_posts', postId));
+      await deleteDoc(doc(db, 'published_posts', postId));
+      toast({ title: "Post Deleted", description: "Content removed from all registries." })
+    } catch (e) {
+      toast({ variant: "destructive", title: "Delete Failed", description: "Could not remove post." })
+    }
   }
 
   if (view === 'list') {
@@ -116,23 +165,16 @@ export default function BlogManagement() {
               variant="outline" 
               className="rounded-none font-bold uppercase text-[10px] border-muted"
               onClick={() => {
-                setDraft({ title: "", body: "", summary: "", featuredImage: "", scheduledDate: "" })
+                setDraft({ title: "", body: "", summary: "", slug: "", featuredImage: "", scheduledDate: "", status: "draft", category: "Technical" })
                 setView('edit')
               }}
             >
               <PenSquare className="h-3 w-3 mr-2" /> New Manual
             </Button>
-            <Button 
-              className="bg-primary text-primary-foreground font-bold uppercase rounded-none text-[10px] yellow-glow"
-              onClick={() => {}}
-            >
-              <Plus className="h-3 w-3 mr-2" /> Bulk Actions
-            </Button>
           </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          {/* AI Generator Sidebar */}
           <Card className="lg:col-span-1 bg-card border-2 border-muted h-fit">
             <CardHeader>
               <CardTitle className="text-sm font-bold uppercase tracking-widest flex items-center gap-2">
@@ -162,62 +204,56 @@ export default function BlogManagement() {
             </CardContent>
           </Card>
 
-          {/* List Table */}
           <Card className="lg:col-span-3 bg-card border-2 border-muted overflow-hidden">
             <div className="p-4 border-b-2 border-muted flex flex-col md:flex-row gap-4 items-center justify-between">
               <div className="relative w-full md:w-64">
                 <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
                 <Input placeholder="Search posts..." className="pl-8 h-8 rounded-none bg-background border-muted text-[10px]" />
               </div>
-              <div className="flex gap-2">
-                <Button variant="ghost" size="sm" className="h-8 rounded-none text-[10px] font-bold uppercase"><Filter className="h-3 w-3 mr-1" /> Status</Button>
-                <Button variant="ghost" size="sm" className="h-8 rounded-none text-[10px] font-bold uppercase"><Layout className="h-3 w-3 mr-1" /> Category</Button>
-              </div>
             </div>
-            <Table>
-              <TableHeader className="bg-muted/30">
-                <TableRow>
-                  <TableHead className="uppercase text-[10px] font-bold tracking-widest">Title</TableHead>
-                  <TableHead className="uppercase text-[10px] font-bold tracking-widest">Status</TableHead>
-                  <TableHead className="uppercase text-[10px] font-bold tracking-widest">Category</TableHead>
-                  <TableHead className="uppercase text-[10px] font-bold tracking-widest text-right">Stats</TableHead>
-                  <TableHead className="w-[50px]"></TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {mockPosts.map((post) => (
-                  <TableRow key={post.id} className="hover:bg-muted/10">
-                    <TableCell>
-                      <div className="font-bold text-sm uppercase group cursor-pointer" onClick={() => {
-                        setDraft({ title: post.title, body: "Existing content load...", summary: "", featuredImage: "", scheduledDate: "" })
-                        setView('edit')
-                      }}>
-                        {post.title}
-                        <p className="text-[9px] text-muted-foreground font-normal lowercase">/{post.slug}</p>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge className={`rounded-none text-[8px] uppercase font-bold ${
-                        post.status === 'published' ? 'bg-green-500/10 text-green-500' :
-                        post.status === 'scheduled' ? 'bg-blue-500/10 text-blue-500' : 'bg-yellow-500/10 text-yellow-500'
-                      }`}>
-                        {post.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-[10px] font-bold uppercase text-muted-foreground">{post.category}</TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex flex-col items-end">
-                        <span className="text-[10px] font-bold">{post.views}</span>
-                        <span className="text-[8px] text-muted-foreground font-bold uppercase">Views</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Button variant="ghost" size="icon" className="h-8 w-8"><MoreVertical className="h-4 w-4" /></Button>
-                    </TableCell>
+            {postsLoading ? (
+              <div className="p-12 text-center"><Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" /></div>
+            ) : (
+              <Table>
+                <TableHeader className="bg-muted/30">
+                  <TableRow>
+                    <TableHead className="uppercase text-[10px] font-bold tracking-widest">Title</TableHead>
+                    <TableHead className="uppercase text-[10px] font-bold tracking-widest">Status</TableHead>
+                    <TableHead className="uppercase text-[10px] font-bold tracking-widest">Category</TableHead>
+                    <TableHead className="w-[100px]"></TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {posts?.map((post) => (
+                    <TableRow key={post.id} className="hover:bg-muted/10">
+                      <TableCell>
+                        <div className="font-bold text-sm uppercase group cursor-pointer" onClick={() => {
+                          setDraft(post)
+                          setView('edit')
+                        }}>
+                          {post.title}
+                          <p className="text-[9px] text-muted-foreground font-normal lowercase">/{post.slug}</p>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge className={`rounded-none text-[8px] uppercase font-bold ${
+                          post.status === 'published' ? 'bg-green-500/10 text-green-500' : 'bg-yellow-500/10 text-yellow-500'
+                        }`}>
+                          {post.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-[10px] font-bold uppercase text-muted-foreground">{post.category}</TableCell>
+                      <TableCell>
+                        <div className="flex gap-2">
+                          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => { setDraft(post); setView('edit'); }}><PenSquare className="h-4 w-4" /></Button>
+                          <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => handleDelete(post.id)}><X className="h-4 w-4" /></Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
           </Card>
         </div>
       </div>
@@ -233,7 +269,7 @@ export default function BlogManagement() {
           </Button>
           <div>
             <h1 className="text-xl font-headline font-bold uppercase tracking-tighter">Edit <span className="text-primary">Content</span></h1>
-            <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest">Post ID: {draft ? 'AI-DRAFT' : 'NEW-ENTRY'}</p>
+            <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest">Post ID: {draft?.id || 'NEW-ENTRY'}</p>
           </div>
         </div>
         <div className="flex gap-2">
@@ -300,7 +336,6 @@ export default function BlogManagement() {
           </Card>
         </div>
 
-        {/* Sidebar Controls */}
         <div className="lg:col-span-1 space-y-6">
           <Card className="bg-card border-2 border-muted">
             <CardHeader className="p-4 border-b">
@@ -312,16 +347,16 @@ export default function BlogManagement() {
             <CardContent className="p-4 space-y-4">
               <div className="space-y-2">
                 <Label className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">Category</Label>
-                <select className="w-full bg-background border border-muted h-9 text-xs px-2 uppercase font-bold rounded-none outline-none focus:border-primary">
+                <select 
+                  value={draft?.category}
+                  onChange={(e) => updateDraft('category', e.target.value)}
+                  className="w-full bg-background border border-muted h-9 text-xs px-2 uppercase font-bold rounded-none outline-none focus:border-primary"
+                >
                   <option>Technical</option>
                   <option>Innovation</option>
                   <option>Maintenance</option>
                   <option>Project Case</option>
                 </select>
-              </div>
-              <div className="space-y-2">
-                <Label className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">Tags (comma separated)</Label>
-                <Input placeholder="concrete, structural, etc" className="bg-background rounded-none border-muted h-9 text-xs" />
               </div>
               <div className="space-y-2">
                 <Label className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">Schedule Date</Label>
@@ -392,18 +427,22 @@ export default function BlogManagement() {
                   <Label className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">Meta Title</Label>
                   <span className="text-[8px] text-muted-foreground">{draft?.title.length || 0}/60</span>
                 </div>
-                <Input defaultValue={draft?.title} className="bg-background rounded-none border-muted h-9 text-xs" />
+                <Input 
+                  value={draft?.title} 
+                  onChange={(e) => updateDraft('title', e.target.value)}
+                  className="bg-background rounded-none border-muted h-9 text-xs" 
+                />
               </div>
               <div className="space-y-1">
                 <div className="flex justify-between">
                   <Label className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">Meta Desc</Label>
                   <span className="text-[8px] text-muted-foreground">{draft?.summary.length || 0}/160</span>
                 </div>
-                <Textarea defaultValue={draft?.summary} className="bg-background rounded-none border-muted h-20 text-xs" />
-              </div>
-              <div className="p-2 bg-muted/20 border-l-2 border-green-500">
-                <p className="text-[9px] font-bold text-green-500 uppercase">SEO Strength: High</p>
-                <p className="text-[8px] text-muted-foreground uppercase">Readability is optimized for technical audiences.</p>
+                <Textarea 
+                  value={draft?.summary} 
+                  onChange={(e) => updateDraft('summary', e.target.value)}
+                  className="bg-background rounded-none border-muted h-20 text-xs" 
+                />
               </div>
             </CardContent>
           </Card>

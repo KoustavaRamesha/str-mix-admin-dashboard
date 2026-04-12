@@ -17,15 +17,67 @@ import {
   Construction,
   AlertTriangle,
   Database,
-  Smartphone
+  Smartphone,
+  Loader2
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
+import { doc, setDoc } from 'firebase/firestore'
+import { useFirestore, useDoc, useMemoFirebase } from '@/firebase'
+import { useState, useEffect } from "react"
 
 export default function SystemSettings() {
   const { toast } = useToast()
+  const db = useFirestore()
+  const [saving, setSaving] = useState(false)
 
-  const handleSave = () => {
-    toast({ title: "Configuration Updated", description: "System variables synchronized across all industrial nodes." })
+  const settingsRef = useMemoFirebase(() => doc(db, 'settings', 'global'), [db]);
+  const { data: settings, isLoading } = useDoc(settingsRef);
+
+  const [localSettings, setLocalSettings] = useState({
+    siteName: "STR mix Digital",
+    contactEmail: "ops@strmix.digital",
+    maintenanceMode: false,
+    autoModReviews: false,
+    mobilePush: true
+  })
+
+  useEffect(() => {
+    if (settings) {
+      setLocalSettings({
+        siteName: settings.siteName || "STR mix Digital",
+        contactEmail: settings.contactEmail || "ops@strmix.digital",
+        maintenanceMode: !!settings.maintenanceMode,
+        autoModReviews: !!settings.autoModReviews,
+        mobilePush: settings.mobilePush !== undefined ? !!settings.mobilePush : true
+      })
+    }
+  }, [settings])
+
+  const handleSave = async () => {
+    setSaving(true)
+    try {
+      await setDoc(settingsRef, localSettings, { merge: true })
+      toast({ 
+        title: "Configuration Updated", 
+        description: "Global system variables synchronized successfully." 
+      })
+    } catch (error) {
+      toast({ 
+        variant: "destructive",
+        title: "Update Failed", 
+        description: "Could not synchronize settings to Firestore." 
+      })
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    )
   }
 
   return (
@@ -38,8 +90,10 @@ export default function SystemSettings() {
         <Button 
           className="bg-primary text-primary-foreground font-bold uppercase rounded-none text-[10px] yellow-glow"
           onClick={handleSave}
+          disabled={saving}
         >
-          <Save className="h-3 w-3 mr-2" /> Commit Changes
+          {saving ? <Loader2 className="h-3 w-3 animate-spin mr-2" /> : <Save className="h-3 w-3 mr-2" />}
+          Commit Changes
         </Button>
       </div>
 
@@ -58,21 +112,25 @@ export default function SystemSettings() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Entity Name</Label>
-                  <Input defaultValue="STR mix Digital" className="bg-background rounded-none border-muted h-9 text-xs" />
+                  <Input 
+                    value={localSettings.siteName} 
+                    onChange={(e) => setLocalSettings(prev => ({ ...prev, siteName: e.target.value }))}
+                    className="bg-background rounded-none border-muted h-9 text-xs" 
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Primary Contact Email</Label>
-                  <Input defaultValue="ops@strmix.digital" className="bg-background rounded-none border-muted h-9 text-xs" />
+                  <Input 
+                    value={localSettings.contactEmail} 
+                    onChange={(e) => setLocalSettings(prev => ({ ...prev, contactEmail: e.target.value }))}
+                    className="bg-background rounded-none border-muted h-9 text-xs" 
+                  />
                 </div>
-              </div>
-              <div className="space-y-2">
-                <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Global SEO Meta Description</Label>
-                <textarea className="w-full bg-background border-2 border-muted h-24 text-xs p-3 focus:border-primary outline-none transition-colors" defaultValue="Leading the industrial sector with high-strength concrete solutions and precision project management." />
               </div>
             </CardContent>
           </Card>
 
-          {/* SMTP Config */}
+          {/* Infrastructure */}
           <Card className="bg-card border-2 border-muted">
             <CardHeader className="border-b">
               <CardTitle className="text-sm font-bold uppercase tracking-widest flex items-center gap-2">
@@ -96,7 +154,6 @@ export default function SystemSettings() {
                     <Input disabled value="AWS_SECRETS_SENDGRID_KEY_PROD" className="bg-muted rounded-none border-muted h-9 text-xs flex-1 font-mono" />
                     <Button variant="outline" className="h-9 rounded-none text-[9px] font-bold uppercase">Rotate</Button>
                   </div>
-                  <p className="text-[8px] text-muted-foreground uppercase italic">Secrets are stored in AWS Secrets Manager and never exposed in cleartext.</p>
                 </div>
               </div>
             </CardContent>
@@ -115,7 +172,10 @@ export default function SystemSettings() {
                   <Label className="text-[10px] font-bold uppercase tracking-widest">Maintenance Mode</Label>
                   <p className="text-[8px] text-muted-foreground uppercase">Public site is offline</p>
                 </div>
-                <Switch />
+                <Switch 
+                  checked={localSettings.maintenanceMode} 
+                  onCheckedChange={(checked) => setLocalSettings(prev => ({ ...prev, maintenanceMode: checked }))} 
+                />
               </div>
               <Separator />
               <div className="flex items-center justify-between">
@@ -123,19 +183,24 @@ export default function SystemSettings() {
                   <Label className="text-[10px] font-bold uppercase tracking-widest">Auto-Mod Reviews</Label>
                   <p className="text-[8px] text-muted-foreground uppercase">Skip manual review</p>
                 </div>
-                <Switch />
+                <Switch 
+                  checked={localSettings.autoModReviews} 
+                  onCheckedChange={(checked) => setLocalSettings(prev => ({ ...prev, autoModReviews: checked }))}
+                />
               </div>
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
                   <Label className="text-[10px] font-bold uppercase tracking-widest">Mobile Push</Label>
                   <p className="text-[8px] text-muted-foreground uppercase">Admin alerts for tickets</p>
                 </div>
-                <Switch defaultChecked />
+                <Switch 
+                  checked={localSettings.mobilePush} 
+                  onCheckedChange={(checked) => setLocalSettings(prev => ({ ...prev, mobilePush: checked }))}
+                />
               </div>
             </CardContent>
           </Card>
 
-          {/* Infrastructure */}
           <Card className="bg-primary/5 border-2 border-primary/20">
             <CardHeader className="p-4">
               <CardTitle className="text-xs font-bold uppercase tracking-widest flex items-center gap-2">
@@ -145,17 +210,13 @@ export default function SystemSettings() {
             </CardHeader>
             <CardContent className="p-4 pt-0 space-y-4">
               <div className="space-y-1">
-                <p className="text-[10px] font-bold uppercase">Database Nodes</p>
+                <p className="text-[10px] font-bold uppercase">Database Status</p>
                 <div className="flex gap-1">
-                  {[1, 2, 3].map(i => (
-                    <div key={i} className="h-1.5 flex-1 bg-primary rounded-full" />
-                  ))}
+                   <div className="h-1.5 flex-1 bg-primary rounded-full" />
+                   <div className="h-1.5 flex-1 bg-primary rounded-full" />
+                   <div className="h-1.5 flex-1 bg-primary rounded-full" />
                 </div>
-              </div>
-              <div className="space-y-1">
-                <p className="text-[10px] font-bold uppercase">S3 Storage Usage</p>
-                <p className="text-xl font-headline font-bold">14.2 GB</p>
-                <p className="text-[8px] text-muted-foreground uppercase">0.05% of quota used</p>
+                <p className="text-[8px] text-muted-foreground uppercase mt-1">Firestore Cluster: Active</p>
               </div>
             </CardContent>
           </Card>

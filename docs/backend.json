@@ -18,10 +18,7 @@
         },
         "role": {
           "type": "string",
-          "description": "The role of the user, defining their access permissions within the system.",
-          "items": {
-            "type": "string"
-          }
+          "description": "The role of the user, defining their access permissions within the system."
         },
         "createdAt": {
           "type": "string",
@@ -35,6 +32,24 @@
         "role",
         "createdAt"
       ]
+    },
+    "SystemConfig": {
+      "title": "SystemConfig",
+      "type": "object",
+      "description": "Global configuration settings for the entire platform.",
+      "properties": {
+        "maintenanceMode": {
+          "type": "boolean",
+          "description": "When true, public routes are blocked by a maintenance screen."
+        },
+        "siteName": {
+          "type": "string"
+        },
+        "contactEmail": {
+          "type": "string",
+          "format": "email"
+        }
+      }
     },
     "Category": {
       "$schema": "http://json-schema.org/draft-07/schema#",
@@ -190,10 +205,7 @@
         },
         "status": {
           "type": "string",
-          "description": "The moderation status of the review.",
-          "items": {
-            "type": "string"
-          }
+          "description": "The moderation status of the review."
         },
         "createdAt": {
           "type": "string",
@@ -240,10 +252,7 @@
         },
         "status": {
           "type": "string",
-          "description": "The current status of the support ticket.",
-          "items": {
-            "type": "string"
-          }
+          "description": "The current status of the support ticket."
         },
         "createdAt": {
           "type": "string",
@@ -307,13 +316,23 @@
   "firestore": {
     "structure": [
       {
+        "path": "/settings/global",
+        "definition": {
+          "entityName": "SystemConfig",
+          "schema": {
+            "$ref": "#/backend/entities/SystemConfig"
+          },
+          "description": "Global application settings."
+        }
+      },
+      {
         "path": "/users/{userId}",
         "definition": {
           "entityName": "User",
           "schema": {
             "$ref": "#/backend/entities/User"
           },
-          "description": "Stores user profiles. Primarily for authenticated user data, potentially including denormalized display-related fields. User-specific roles for authorization are handled in `/roles_admin`."
+          "description": "Stores user profiles."
         }
       },
       {
@@ -323,13 +342,7 @@
           "schema": {
             "$ref": "#/backend/entities/User"
           },
-          "description": "Dedicated collection for Database Access Control (DBAC). The mere existence of a document here (keyed by userId) grants administrative privileges. This ensures authorization independence by allowing a simple 'exists' check in security rules.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The unique identifier of the user who has an admin role."
-            }
-          ]
+          "description": "Grants administrative privileges."
         }
       },
       {
@@ -339,13 +352,7 @@
           "schema": {
             "$ref": "#/backend/entities/Post"
           },
-          "description": "Stores all blog posts, including drafts and published versions, exclusively for administrative management. Admin users have full CRUD access. Updates to this collection trigger synchronization to '/published_posts' upon a post being published.",
-          "params": [
-            {
-              "name": "postId",
-              "description": "The unique identifier for the blog post."
-            }
-          ]
+          "description": "Management collection for blog posts."
         }
       },
       {
@@ -355,13 +362,7 @@
           "schema": {
             "$ref": "#/backend/entities/Post"
           },
-          "description": "Stores only published blog posts, optimized for public consumption. Read-only for all users, writeable only by admin (typically via a Cloud Function triggered by '/admin_posts' updates). Ensures QAPs for blog feed pages by only containing publicly visible data.",
-          "params": [
-            {
-              "name": "postId",
-              "description": "The unique identifier for the published blog post."
-            }
-          ]
+          "description": "Public blog posts."
         }
       },
       {
@@ -371,13 +372,7 @@
           "schema": {
             "$ref": "#/backend/entities/Category"
           },
-          "description": "Stores categories for blog posts. Publicly readable, admin writeable. Used for content organization and filtering.",
-          "params": [
-            {
-              "name": "categoryId",
-              "description": "The unique identifier for the category."
-            }
-          ]
+          "description": "Blog categories."
         }
       },
       {
@@ -387,13 +382,7 @@
           "schema": {
             "$ref": "#/backend/entities/Tag"
           },
-          "description": "Stores tags for blog posts. Publicly readable, admin writeable. Used for content discovery and filtering.",
-          "params": [
-            {
-              "name": "tagId",
-              "description": "The unique identifier for the tag."
-            }
-          ]
+          "description": "Blog tags."
         }
       },
       {
@@ -403,13 +392,7 @@
           "schema": {
             "$ref": "#/backend/entities/Review"
           },
-          "description": "Stores all customer reviews (pending, approved, rejected) for administrative moderation. Public users can create new reviews here. Admin users have full CRUD access to moderate reviews. Approved reviews are synchronized to '/published_reviews'.",
-          "params": [
-            {
-              "name": "reviewId",
-              "description": "The unique identifier for the review."
-            }
-          ]
+          "description": "Review moderation queue."
         }
       },
       {
@@ -419,13 +402,7 @@
           "schema": {
             "$ref": "#/backend/entities/Review"
           },
-          "description": "Stores only approved customer reviews, optimized for public display. Read-only for all users, writeable only by admin (typically via a Cloud Function triggered by '/admin_reviews' updates). Ensures QAPs for public review listings.",
-          "params": [
-            {
-              "name": "reviewId",
-              "description": "The unique identifier for the published review."
-            }
-          ]
+          "description": "Public approved reviews."
         }
       },
       {
@@ -435,13 +412,7 @@
           "schema": {
             "$ref": "#/backend/entities/SupportTicket"
           },
-          "description": "Stores support tickets submitted by users or guests. Includes 'submittedById' for logged-in user ownership and 'email' for guest identification. Authenticated users can read/update their own tickets. Admin users have full CRUD access.",
-          "params": [
-            {
-              "name": "ticketId",
-              "description": "The unique identifier for the support ticket."
-            }
-          ]
+          "description": "Customer support tickets."
         }
       },
       {
@@ -451,20 +422,10 @@
           "schema": {
             "$ref": "#/backend/entities/TicketReply"
           },
-          "description": "Stores replies for support tickets. Includes 'authorId' and denormalized 'ticketSubmittedById' (from the parent ticket) for authorization independence, allowing both the ticket submitter and admins to read replies without parent lookups. Only admins or the original submitter can create replies.",
-          "params": [
-            {
-              "name": "ticketId",
-              "description": "The unique identifier of the parent support ticket."
-            },
-            {
-              "name": "replyId",
-              "description": "The unique identifier for the ticket reply."
-            }
-          ]
+          "description": "Ticket conversation thread."
         }
       }
     ],
-    "reasoning": "The STR mix Digital Firestore structure is designed following the core principles of Authorization Independence, Structural Segregation, and Query as Protection (QAPs) to ensure a secure, scalable, and debuggable system."
+    "reasoning": "Standardized industrial data architecture with global configuration document for features like maintenance mode."
   }
 }
