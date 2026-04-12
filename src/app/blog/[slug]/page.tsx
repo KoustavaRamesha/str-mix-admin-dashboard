@@ -22,7 +22,7 @@ export default async function BlogPostPage({ params }: { params: { slug: string 
       2. **Moisture:** Concrete needs to stay wet to cure properly.
       3. **Mix Design:** Chemical additives (accelerators) can speed up the initial set.
 
-      Proper curing is the difference between a structure that lasts 10 years and one that lasts 100. At SolidSite, we utilize moisture-retaining blankets and chemical sealants to ensure every pour reaches its maximum potential strength.
+      Proper curing is the difference between a structure that lasts 10 years and one that lasts 100. At STR mix, we utilize moisture-retaining blankets and chemical sealants to ensure every pour reaches its maximum potential strength.
     `,
     date: "Oct 24, 2023",
     author: "Eng. Mark Steel",

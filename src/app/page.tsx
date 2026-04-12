@@ -1,3 +1,4 @@
+
 import Image from "next/image"
 import Link from "next/link"
 import { Navbar } from "@/components/navbar"
@@ -136,7 +137,7 @@ export default function Home() {
               </div>
               <div className="space-y-8">
                 <h2 className="text-3xl md:text-5xl font-headline font-bold uppercase tracking-tighter">
-                  Why Work With <br /><span className="text-primary">SolidSite Digital?</span>
+                  Why Work With <br /><span className="text-primary">STR mix Digital?</span>
                 </h2>
                 <div className="space-y-6">
                   <div className="flex gap-4">

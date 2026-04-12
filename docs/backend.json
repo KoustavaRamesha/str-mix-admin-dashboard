@@ -1,10 +1,11 @@
+
 {
   "entities": {
     "User": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "User",
       "type": "object",
-      "description": "Represents a user of the SolidSite Digital platform, including authors of blog posts and administrators. Does not store authentication credentials.",
+      "description": "Represents a user of the STR mix Digital platform, including authors of blog posts and administrators. Does not store authentication credentials.",
       "properties": {
         "id": {
           "type": "string",
@@ -89,7 +90,7 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Post",
       "type": "object",
-      "description": "Represents a blog post or article published on the SolidSite Digital platform.",
+      "description": "Represents a blog post or article published on the STR mix Digital platform.",
       "properties": {
         "id": {
           "type": "string",
@@ -464,6 +465,6 @@
         }
       }
     ],
-    "reasoning": "The Firestore structure is designed following the core principles of Authorization Independence, Structural Segregation, and Query as Protection (QAPs) to ensure a secure, scalable, and debuggable system. The primary goal is to simplify Firestore security rules by making access explicit through collection structure and denormalized data.\n\n1.  **Authorization Independence (Denormalization):**\n    *   For support ticket replies (`/support_tickets/{ticketId}/replies/{replyId}`), access to replies often depends on who owns the parent ticket. To avoid expensive `get()` calls in security rules, the `ticketSubmittedById` (representing the original submitter of the parent ticket) is denormalized and stored directly within each `TicketReply` document. This allows a reply's access to be determined atomically by its own fields and the `request.auth.uid`.\n    *   Global administrative roles are handled by existence checks: `/roles_admin/{userId}`. The mere presence of a document at this path grants admin privileges, eliminating the need to read the `User` document's `role` field for every authorization check.\n\n2.  **Structural Segregation & QAPs:**\n    *   **Blog Posts (`Post`):** To enforce QAPs and separate administrative data from public content, blog posts are split into two collections: `/admin_posts/{postId}` and `/published_posts/{postId}`.\n        *   `/admin_posts` contains all posts (drafts, published, archived) and is accessible only by administrators for full CRUD operations. Public users cannot read from this collection.\n        *   `/published_posts` contains only posts that have been explicitly published. This collection is read-only for all public users, making security rules simple (`allow read: true;`). Write operations to this collection are primarily handled by server-side logic (e.g., Cloud Functions) that synchronize data from `/admin_posts` when a post's status changes to `PUBLISHED`.\n        *   This segregation ensures that public queries for blog posts will inherently only ever retrieve published content, preventing data leakage and simplifying rule logic (rules are not filters).\n    *   **Reviews (`Review`):** Similarly, reviews are segregated into `/admin_reviews/{reviewId}` and `/published_reviews/{reviewId}`.\n        *   `/admin_reviews` is where all reviews are initially submitted (by public users) and moderated by administrators. Administrators have full CRUD access to manage and change the status of reviews.\n        *   `/published_reviews` contains only reviews that have been `APPROVED` by an administrator. Public users can only read from this collection. As with posts, server-side synchronization moves `APPROVED` reviews from `admin_reviews` to `published_reviews`, ensuring public queries only ever see approved content without complex `where` clauses in security rules.\n    *   **Support Tickets (`SupportTicket`):** A single collection `/support_tickets/{ticketId}` is used, but access is controlled by an `submittedById` field for individual users to access their own tickets, alongside blanket admin access. This follows the path-based ownership for user-owned data where `request.auth.uid` matches `resource.data.submittedById`.\n\n3.  **Explicit State Modeling:** Entities like `Post` and `Review` utilize explicit `status` fields (e.g., `DRAFT`, `PUBLISHED`; `PENDING`, `APPROVED`, `REJECTED`) to clearly define their lifecycle and control visibility, which is then reinforced by the structural segregation."
+    "reasoning": "The STR mix Digital Firestore structure is designed following the core principles of Authorization Independence, Structural Segregation, and Query as Protection (QAPs) to ensure a secure, scalable, and debuggable system."
   }
 }

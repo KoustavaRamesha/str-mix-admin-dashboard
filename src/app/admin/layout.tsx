@@ -51,7 +51,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <Link href="/" className="flex items-center gap-2 overflow-hidden">
             <Construction className="h-6 w-6 text-primary shrink-0" />
             <span className="font-headline text-lg font-bold tracking-tighter uppercase whitespace-nowrap group-data-[collapsible=icon]:hidden">
-              Solid<span className="text-primary">Admin</span>
+              STR <span className="text-primary">Admin</span>
             </span>
           </Link>
         </SidebarHeader>

@@ -1,3 +1,4 @@
+
 "use client"
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
@@ -57,11 +58,11 @@ export default function SystemSettings() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Entity Name</Label>
-                  <Input defaultValue="SolidSite Digital" className="bg-background rounded-none border-muted h-9 text-xs" />
+                  <Input defaultValue="STR mix Digital" className="bg-background rounded-none border-muted h-9 text-xs" />
                 </div>
                 <div className="space-y-2">
                   <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Primary Contact Email</Label>
-                  <Input defaultValue="ops@solidsite.digital" className="bg-background rounded-none border-muted h-9 text-xs" />
+                  <Input defaultValue="ops@strmix.digital" className="bg-background rounded-none border-muted h-9 text-xs" />
                 </div>
               </div>
               <div className="space-y-2">

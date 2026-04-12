@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState } from "react"
@@ -15,14 +16,14 @@ const initialReviews = [
   {
     name: "James Anderson",
     role: "Logistics Manager",
-    content: "The precision on our warehouse slab was incredible. We use high-reach forklifts and any variation would have been a disaster. SolidSite delivered perfection.",
+    content: "The precision on our warehouse slab was incredible. We use high-reach forklifts and any variation would have been a disaster. STR mix delivered perfection.",
     rating: 5,
     date: "2 months ago"
   },
   {
     name: "Elena Rodriguez",
     role: "Architect",
-    content: "I've specified SolidSite for three of my commercial projects. Their attention to structural detail and timing is exactly what the industry needs.",
+    content: "I've specified STR mix for three of my commercial projects. Their attention to structural detail and timing is exactly what the industry needs.",
     rating: 5,
     date: "3 months ago"
   },
