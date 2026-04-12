@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { Construction, Loader2, Lock, AlertTriangle, AlertCircle } from "lucide-react"
+import { Construction, Loader2, Lock, AlertTriangle, AlertCircle, Info } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -33,15 +33,11 @@ export default function LoginPage() {
     
     try {
       await signInWithEmailAndPassword(auth, email, password)
-      // On success, the useUser() hook and redirect logic above will take over
     } catch (err: any) {
       console.error("Login Failure:", err)
       
-      // Map Firebase codes to user-friendly industrial messages
-      if (err.code === 'auth/invalid-credential' || err.code === 'auth/wrong-password') {
+      if (err.code === 'auth/invalid-credential' || err.code === 'auth/wrong-password' || err.code === 'auth/user-not-found') {
         setError("Invalid security credentials. Access denied.")
-      } else if (err.code === 'auth/user-not-found') {
-        setError("Administrator account not registered in system.")
       } else if (err.code === 'auth/too-many-requests') {
         setError("Account locked due to multiple failed attempts. Try again later.")
       } else {
@@ -114,15 +110,23 @@ export default function LoginPage() {
             </form>
           </CardContent>
           <CardFooter className="bg-muted/10 border-t p-6 flex flex-col gap-4">
-            <div className="flex items-start gap-3 bg-yellow-500/10 p-3 border border-yellow-500/30">
-              <AlertTriangle className="h-4 w-4 text-yellow-500 shrink-0 mt-0.5" />
-              <p className="text-[10px] font-bold uppercase text-muted-foreground leading-tight">
-                Notice: Ensure your administrator account exists in the Firebase Console and has a record in the <code className="text-primary font-mono lowercase">roles_admin</code> collection.
-              </p>
-            </div>
-            <div className="flex justify-between w-full text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-              <span>v1.4.2-stable</span>
-              <Link href="/" className="hover:text-primary underline">Return Home</Link>
+            <div className="w-full space-y-4">
+              <div className="flex items-start gap-3 bg-blue-500/10 p-3 border border-blue-500/30">
+                <Info className="h-4 w-4 text-blue-400 shrink-0 mt-0.5" />
+                <div className="space-y-1">
+                  <p className="text-[10px] font-bold uppercase text-blue-400 leading-tight">Setup Instructions</p>
+                  <p className="text-[9px] text-muted-foreground leading-relaxed">
+                    1. Go to your <strong className="text-foreground">Firebase Console</strong>.<br />
+                    2. Enable <strong className="text-foreground">Email/Password</strong> auth.<br />
+                    3. Create a user with your desired credentials.<br />
+                    4. In Firestore, create a document in <code className="text-primary font-mono lowercase">roles_admin/[UID]</code> where [UID] matches the user you created.
+                  </p>
+                </div>
+              </div>
+              <div className="flex justify-between w-full text-[10px] font-bold uppercase tracking-widest text-muted-foreground pt-2">
+                <span>v1.4.2-stable</span>
+                <Link href="/" className="hover:text-primary underline">Return Home</Link>
+              </div>
             </div>
           </CardFooter>
         </Card>
