@@ -27,72 +27,72 @@ export function Navbar() {
   }, [])
 
   const isAdminPath = pathname?.startsWith('/admin')
-
   if (isAdminPath) return null
 
   return (
-    <nav className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <nav className="fixed top-0 z-50 w-full border-b-2 border-muted bg-background/80 backdrop-blur-xl">
       <div className="container mx-auto px-4 h-24 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-3 group">
-          <div className="h-8 w-8 text-primary transition-transform group-hover:scale-110">
+        <Link href="/" className="flex items-center gap-4 group">
+          <div className="h-10 w-10 text-primary transition-transform group-hover:rotate-12">
             <Construction className="h-full w-full" />
           </div>
-          <span className="font-headline text-2xl md:text-3xl font-bold tracking-tighter uppercase">
+          <span className="font-headline text-3xl font-bold tracking-tighter uppercase leading-none">
             STR <span className="text-primary">mix</span>
           </span>
         </Link>
 
         {/* Desktop Nav */}
-        <div className="hidden md:flex items-center gap-8">
+        <div className="hidden md:flex items-center gap-10">
           {navItems.map((item) => (
             <Link
               key={item.href}
               href={item.href}
               className={cn(
-                "text-md font-bold uppercase tracking-widest transition-colors hover:text-primary",
-                pathname === item.href ? "text-primary" : "text-muted-foreground"
+                "text-xs font-bold uppercase tracking-[0.2em] transition-all hover:text-primary relative py-2",
+                pathname === item.href ? "text-primary after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-primary" : "text-muted-foreground"
               )}
             >
               {item.name}
             </Link>
           ))}
-          <Button asChild variant="outline" size="lg" className="gap-2 border-primary/50 hover:bg-primary/10 rounded-none h-12 px-6 font-bold uppercase text-xs">
+          <Button asChild variant="outline" size="lg" className="border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground rounded-none h-12 px-8 font-bold uppercase text-xs tracking-widest">
             <Link href="/login">
-              <LogIn className="h-5 w-5" />
-              Admin Access
+              Portal
             </Link>
           </Button>
         </div>
 
         {/* Mobile Toggle */}
         <button
-          className="md:hidden text-foreground p-2"
+          className="md:hidden text-foreground p-2 border-2 border-muted"
           onClick={() => setIsOpen(!isOpen)}
           aria-label="Toggle Menu"
         >
-          {isOpen ? <X className="h-8 w-8" /> : <Menu className="h-8 w-8" />}
+          {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
         </button>
       </div>
 
       {/* Mobile Nav */}
       {mounted && isOpen && (
-        <div className="md:hidden border-b bg-background p-6 flex flex-col gap-6 animate-in slide-in-from-top-4">
+        <div className="md:hidden fixed inset-0 top-24 bg-background z-50 p-8 flex flex-col gap-8 animate-in slide-in-from-right duration-300">
           {navItems.map((item) => (
             <Link
               key={item.href}
               href={item.href}
               onClick={() => setIsOpen(false)}
               className={cn(
-                "text-lg font-bold uppercase tracking-widest transition-colors hover:text-primary",
+                "text-4xl font-headline font-bold uppercase tracking-tighter transition-colors",
                 pathname === item.href ? "text-primary" : "text-muted-foreground"
               )}
             >
               {item.name}
             </Link>
           ))}
-          <Button asChild variant="default" className="w-full h-14 rounded-none font-bold uppercase bg-primary text-primary-foreground">
-            <Link href="/login" onClick={() => setIsOpen(false)}>Admin Portal Access</Link>
-          </Button>
+          <div className="mt-auto">
+            <Button asChild size="lg" className="w-full h-20 rounded-none font-bold uppercase text-xl bg-primary text-primary-foreground">
+              <Link href="/login" onClick={() => setIsOpen(false)}>Admin Access</Link>
+            </Button>
+          </div>
         </div>
       )}
     </nav>

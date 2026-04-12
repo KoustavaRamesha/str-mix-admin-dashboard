@@ -52,7 +52,7 @@ export default function ServicesPage() {
       <main className="flex-grow">
         {/* Header Hero */}
         <section className="py-32 industrial-grid border-b-2 border-muted bg-card">
-          <div className="container">
+          <div className="container mx-auto px-4">
             <h1 className="text-7xl md:text-[10rem] font-headline font-bold uppercase tracking-tighter leading-[0.8] mb-10">
               Our <span className="text-primary">Services</span>
             </h1>
@@ -64,7 +64,7 @@ export default function ServicesPage() {
 
         {/* Service List */}
         <section className="py-32">
-          <div className="container">
+          <div className="container mx-auto px-4">
             <div className="space-y-40">
               {services.map((service, idx) => (
                 <div key={idx} className={`flex flex-col ${idx % 2 !== 0 ? 'lg:flex-row-reverse' : 'lg:flex-row'} gap-24 items-center`}>
@@ -89,7 +89,7 @@ export default function ServicesPage() {
                       src={PlaceHolderImages.find(img => img.id === service.image)?.imageUrl || `https://picsum.photos/seed/${service.title}/800/600`}
                       alt={service.title}
                       fill
-                      className="object-cover transition-transform duration-1000 group-hover:scale-110"
+                      className="object-cover transition-transform duration-1000 group-hover:scale-110 grayscale group-hover:grayscale-0"
                     />
                     <div className="absolute inset-0 bg-primary/5 mix-blend-multiply" />
                   </div>
