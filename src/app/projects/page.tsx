@@ -1,4 +1,3 @@
-
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { Badge } from "@/components/ui/badge"
@@ -64,57 +63,57 @@ export default function ProjectsPage() {
       <Navbar />
       <main className="flex-grow">
         {/* Header */}
-        <section className="py-24 bg-card">
-          <div className="container mx-auto px-4">
-            <div className="flex flex-col md:flex-row justify-between items-end gap-8">
-              <div className="space-y-4">
-                <h1 className="text-6xl md:text-8xl font-headline font-bold uppercase tracking-tighter">
+        <section className="py-32 bg-card border-b-2 border-muted p-0">
+          <div className="container py-24">
+            <div className="flex flex-col lg:flex-row justify-between items-end gap-12">
+              <div className="space-y-6">
+                <h1 className="text-7xl md:text-9xl font-headline font-bold uppercase tracking-tighter leading-[0.8]">
                   Case <span className="text-primary">Studies</span>
                 </h1>
-                <p className="text-muted-foreground text-lg uppercase font-bold tracking-widest">A portfolio of structural excellence.</p>
+                <p className="text-xl text-muted-foreground uppercase font-bold tracking-[0.3em]">A portfolio of structural excellence.</p>
               </div>
-              <div className="w-full md:w-80 relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input placeholder="Filter projects..." className="pl-10 rounded-none bg-background border-muted h-12" />
+              <div className="w-full md:w-96 relative">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <Input placeholder="Filter projects by sector..." className="pl-12 rounded-none bg-background border-muted h-14 text-sm font-bold uppercase tracking-widest" />
               </div>
             </div>
           </div>
         </section>
 
         {/* Project Grid */}
-        <section className="py-24 industrial-grid">
-          <div className="container mx-auto px-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <section className="py-32 industrial-grid">
+          <div className="container">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
               {projects.map((project, idx) => (
-                <div key={idx} className="group relative bg-card border-2 border-muted overflow-hidden hover:border-primary transition-colors">
-                  <div className="relative h-80 grayscale group-hover:grayscale-0 transition-all duration-500 overflow-hidden">
+                <div key={idx} className="group relative bg-card border-2 border-muted overflow-hidden hover:border-primary transition-all duration-500 shadow-xl">
+                  <div className="relative h-96 grayscale group-hover:grayscale-0 transition-all duration-700 overflow-hidden">
                     <Image
                       src={PlaceHolderImages.find(img => img.id === project.image)?.imageUrl || `https://picsum.photos/seed/${project.title}/800/600`}
                       alt={project.title}
                       fill
-                      className="object-cover transition-transform duration-700 group-hover:scale-105"
+                      className="object-cover transition-transform duration-1000 group-hover:scale-110"
                     />
-                    <div className="absolute top-4 left-4 flex gap-2">
-                      <Badge className="rounded-none bg-primary text-primary-foreground font-bold uppercase text-[10px]">
+                    <div className="absolute top-6 left-6 flex gap-3">
+                      <Badge className="rounded-none bg-primary text-primary-foreground font-bold uppercase text-xs px-3 py-1 tracking-widest">
                         {project.category}
                       </Badge>
-                      <Badge variant="outline" className="rounded-none border-white text-white font-bold uppercase text-[10px] bg-black/50">
+                      <Badge variant="outline" className="rounded-none border-white text-white font-bold uppercase text-xs px-3 py-1 bg-black/60 tracking-widest backdrop-blur-md">
                         {project.year}
                       </Badge>
                     </div>
                   </div>
-                  <div className="p-6 space-y-4">
+                  <div className="p-8 space-y-6">
                     <div className="flex justify-between items-start">
-                      <div>
-                        <h3 className="text-xl font-headline font-bold uppercase tracking-tight group-hover:text-primary transition-colors">{project.title}</h3>
-                        <p className="text-[10px] font-bold uppercase text-muted-foreground tracking-widest">{project.location}</p>
+                      <div className="space-y-1">
+                        <h3 className="text-2xl font-headline font-bold uppercase tracking-tight group-hover:text-primary transition-colors leading-none">{project.title}</h3>
+                        <p className="text-xs font-bold uppercase text-muted-foreground tracking-[0.2em]">{project.location}</p>
                       </div>
-                      <button className="h-10 w-10 border border-muted flex items-center justify-center hover:bg-primary hover:border-primary hover:text-primary-foreground transition-all">
-                        <ExternalLink className="h-4 w-4" />
+                      <button className="h-12 w-12 border border-muted flex items-center justify-center hover:bg-primary hover:border-primary hover:text-primary-foreground transition-all group/btn">
+                        <ExternalLink className="h-5 w-5 transition-transform group-hover/btn:scale-110" />
                       </button>
                     </div>
-                    <p className="text-sm text-muted-foreground leading-relaxed line-clamp-2">
-                      {project.description}
+                    <p className="text-md text-muted-foreground leading-relaxed line-clamp-2 italic">
+                      "{project.description}"
                     </p>
                   </div>
                 </div>
