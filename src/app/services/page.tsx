@@ -1,11 +1,10 @@
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
 import Link from "next/link"
 import { PlaceHolderImages } from "@/lib/placeholder-images"
-import { Construction, CheckCircle2, ArrowRight } from "lucide-react"
+import { CheckCircle2 } from "lucide-react"
 
 const services = [
   {
@@ -51,40 +50,40 @@ export default function ServicesPage() {
       <Navbar />
       <main className="flex-grow">
         {/* Header Hero */}
-        <section className="py-32 industrial-grid border-b-2 border-muted bg-card">
+        <section className="py-24 industrial-grid border-b-2 border-muted bg-card">
           <div className="container mx-auto px-4">
-            <h1 className="text-7xl md:text-[10rem] font-headline font-bold uppercase tracking-tighter leading-[0.8] mb-10">
+            <h1 className="text-6xl md:text-[7rem] font-headline font-bold uppercase tracking-tighter leading-[0.8] mb-8">
               Our <span className="text-primary">Services</span>
             </h1>
-            <p className="text-muted-foreground text-2xl max-w-2xl font-bold uppercase tracking-[0.2em] leading-relaxed">
+            <p className="text-muted-foreground text-xl max-w-xl font-bold uppercase tracking-[0.2em] leading-relaxed">
               High-performance concrete solutions for every structural challenge.
             </p>
           </div>
         </section>
 
         {/* Service List */}
-        <section className="py-32">
+        <section>
           <div className="container mx-auto px-4">
-            <div className="space-y-40">
+            <div className="space-y-32">
               {services.map((service, idx) => (
-                <div key={idx} className={`flex flex-col ${idx % 2 !== 0 ? 'lg:flex-row-reverse' : 'lg:flex-row'} gap-24 items-center`}>
-                  <div className="flex-1 space-y-8">
-                    <div className="text-8xl font-headline font-bold text-primary/60 leading-none">{service.icon}</div>
-                    <h2 className="text-5xl md:text-6xl font-headline font-bold uppercase tracking-tighter leading-none">{service.title}</h2>
-                    <p className="text-xl text-muted-foreground leading-relaxed">{service.description}</p>
-                    <ul className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
+                <div key={idx} className={`flex flex-col ${idx % 2 !== 0 ? 'lg:flex-row-reverse' : 'lg:flex-row'} gap-16 items-center`}>
+                  <div className="flex-1 space-y-6">
+                    <div className="text-7xl font-headline font-bold text-primary/60 leading-none">{service.icon}</div>
+                    <h2 className="text-4xl md:text-5xl font-headline font-bold uppercase tracking-tighter leading-none">{service.title}</h2>
+                    <p className="text-lg text-muted-foreground leading-relaxed">{service.description}</p>
+                    <ul className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
                       {service.features.map((feature, fIdx) => (
-                        <li key={fIdx} className="flex items-center gap-4 text-sm font-bold uppercase tracking-widest">
-                          <CheckCircle2 className="h-5 w-5 text-primary shrink-0" />
+                        <li key={fIdx} className="flex items-center gap-3 text-xs font-bold uppercase tracking-widest">
+                          <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
                           {feature}
                         </li>
                       ))}
                     </ul>
-                    <Button asChild size="lg" className="rounded-none font-bold uppercase tracking-widest bg-primary text-primary-foreground h-14 px-10 mt-6">
+                    <Button asChild size="lg" className="rounded-none font-bold uppercase tracking-widest bg-primary text-primary-foreground h-12 px-8 mt-4">
                       <Link href="/contact">Request Consultation</Link>
                     </Button>
                   </div>
-                  <div className="flex-1 w-full aspect-[16/10] relative border-8 border-muted overflow-hidden group shadow-2xl">
+                  <div className="flex-1 w-full aspect-[16/9] relative border-4 border-muted overflow-hidden group shadow-xl">
                     <Image
                       src={PlaceHolderImages.find(img => img.id === service.image)?.imageUrl || `https://picsum.photos/seed/${service.title}/800/600`}
                       alt={service.title}

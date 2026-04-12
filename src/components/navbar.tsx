@@ -3,7 +3,7 @@
 import * as React from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Construction, Menu, X, LogIn } from "lucide-react"
+import { Construction, Menu, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
@@ -31,18 +31,18 @@ export function Navbar() {
 
   return (
     <nav className="fixed top-0 z-50 w-full border-b-2 border-muted bg-background/80 backdrop-blur-xl">
-      <div className="container mx-auto px-4 h-24 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-4 group">
-          <div className="h-10 w-10 text-primary transition-transform group-hover:rotate-12">
+      <div className="container mx-auto px-4 h-20 flex items-center justify-between">
+        <Link href="/" className="flex items-center gap-3 group">
+          <div className="h-8 w-8 text-primary transition-transform group-hover:rotate-12">
             <Construction className="h-full w-full" />
           </div>
-          <span className="font-headline text-3xl font-bold tracking-tighter uppercase leading-none">
+          <span className="font-headline text-2xl font-bold tracking-tighter uppercase leading-none">
             STR <span className="text-primary">mix</span>
           </span>
         </Link>
 
         {/* Desktop Nav */}
-        <div className="hidden md:flex items-center gap-10">
+        <div className="hidden md:flex items-center gap-8">
           {navItems.map((item) => (
             <Link
               key={item.href}
@@ -55,7 +55,7 @@ export function Navbar() {
               {item.name}
             </Link>
           ))}
-          <Button asChild variant="outline" size="lg" className="border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground rounded-none h-12 px-8 font-bold uppercase text-xs tracking-widest">
+          <Button asChild variant="outline" size="sm" className="border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground rounded-none h-10 px-6 font-bold uppercase text-[10px] tracking-widest">
             <Link href="/login">
               Portal
             </Link>
@@ -74,7 +74,7 @@ export function Navbar() {
 
       {/* Mobile Nav */}
       {mounted && isOpen && (
-        <div className="md:hidden fixed inset-0 top-24 bg-background z-50 p-8 flex flex-col gap-8 animate-in slide-in-from-right duration-300">
+        <div className="md:hidden fixed inset-0 top-20 bg-background z-50 p-8 flex flex-col gap-8 animate-in slide-in-from-right duration-300">
           {navItems.map((item) => (
             <Link
               key={item.href}
@@ -89,7 +89,7 @@ export function Navbar() {
             </Link>
           ))}
           <div className="mt-auto">
-            <Button asChild size="lg" className="w-full h-20 rounded-none font-bold uppercase text-xl bg-primary text-primary-foreground">
+            <Button asChild size="lg" className="w-full h-16 rounded-none font-bold uppercase text-xl bg-primary text-primary-foreground">
               <Link href="/login" onClick={() => setIsOpen(false)}>Admin Access</Link>
             </Button>
           </div>
