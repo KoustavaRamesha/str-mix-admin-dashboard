@@ -69,7 +69,7 @@ export default function ServicesPage() {
               {services.map((service, idx) => (
                 <div key={idx} className={`flex flex-col ${idx % 2 !== 0 ? 'lg:flex-row-reverse' : 'lg:flex-row'} gap-24 items-center`}>
                   <div className="flex-1 space-y-8">
-                    <div className="text-8xl font-headline font-bold text-primary/20 leading-none">{service.icon}</div>
+                    <div className="text-8xl font-headline font-bold text-primary/60 leading-none">{service.icon}</div>
                     <h2 className="text-5xl md:text-6xl font-headline font-bold uppercase tracking-tighter leading-none">{service.title}</h2>
                     <p className="text-xl text-muted-foreground leading-relaxed">{service.description}</p>
                     <ul className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
