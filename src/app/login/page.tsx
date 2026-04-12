@@ -1,7 +1,7 @@
 
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Construction, Loader2, Lock, AlertCircle, Info } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -24,10 +24,12 @@ export default function LoginPage() {
   const auth = useAuth()
   const { user } = useUser()
 
-  // Redirect if already logged in
-  if (user) {
-    router.push('/admin')
-  }
+  // Redirect if already logged in - moved to useEffect to avoid render-phase updates
+  useEffect(() => {
+    if (user) {
+      router.push('/admin')
+    }
+  }, [user, router])
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
