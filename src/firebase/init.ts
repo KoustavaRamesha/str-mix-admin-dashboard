@@ -2,40 +2,53 @@
 
 import { firebaseConfig } from '@/firebase/config';
 import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
+import { getAuth, Auth } from 'firebase/auth';
+import { getFirestore, Firestore } from 'firebase/firestore';
 
-export function getSdks(firebaseApp: FirebaseApp) {
+// Singleton instances to prevent internal assertion errors in Firestore 11.x
+let appInstance: FirebaseApp | undefined;
+let authInstance: Auth | undefined;
+let dbInstance: Firestore | undefined;
+
+/**
+ * Returns the SDK instances associated with the provided app.
+ * Uses cached instances to maintain a stable state.
+ */
+export function getSdks(app: FirebaseApp) {
+  if (!authInstance) authInstance = getAuth(app);
+  if (!dbInstance) dbInstance = getFirestore(app);
+  
   return {
-    firebaseApp,
-    auth: getAuth(firebaseApp),
-    firestore: getFirestore(firebaseApp)
+    firebaseApp: app,
+    auth: authInstance,
+    firestore: dbInstance
   };
 }
 
-// IMPORTANT: DO NOT MODIFY THIS FUNCTION
+/**
+ * Initializes the Firebase Client SDKs as singletons.
+ * Handles the fallback between automatic environment initialization and config object.
+ */
 export function initializeFirebase() {
-  if (!getApps().length) {
-    // Important! initializeApp() is called without any arguments because Firebase App Hosting
-    // integrates with the initializeApp() function to provide the environment variables needed to
-    // populate the FirebaseOptions in production. It is critical that we attempt to call initializeApp()
-    // without arguments.
-    let firebaseApp;
-    try {
-      // Attempt to initialize via Firebase App Hosting environment variables
-      firebaseApp = initializeApp();
-    } catch (e) {
-      // Only warn in production because it's normal to use the firebaseConfig to initialize
-      // during development
-      if (process.env.NODE_ENV === "production") {
-        console.warn('Automatic initialization failed. Falling back to firebase config object.', e);
-      }
-      firebaseApp = initializeApp(firebaseConfig);
-    }
-
-    return getSdks(firebaseApp);
+  if (typeof window === 'undefined') {
+    // Basic fallback for server side rendering if needed
+    const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+    return getSdks(app);
   }
 
-  // If already initialized, return the SDKs with the already initialized App
-  return getSdks(getApp());
+  if (!appInstance) {
+    if (getApps().length > 0) {
+      appInstance = getApp();
+    } else {
+      try {
+        // Attempt to initialize via Firebase App Hosting environment variables
+        appInstance = initializeApp();
+      } catch (e) {
+        // Fallback to local config object
+        appInstance = initializeApp(firebaseConfig);
+      }
+    }
+  }
+
+  return getSdks(appInstance);
 }

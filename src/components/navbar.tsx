@@ -3,7 +3,7 @@
 import * as React from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Construction, Menu, X } from "lucide-react"
+import { Construction, Menu, X, LogIn } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
@@ -22,6 +22,7 @@ export function Navbar() {
   const [mounted, setMounted] = React.useState(false)
   const pathname = usePathname()
 
+  // Ensure client-side rendering matches the scaled design
   React.useEffect(() => {
     setMounted(true)
   }, [])
@@ -30,18 +31,18 @@ export function Navbar() {
   if (isAdminPath) return null
 
   return (
-    <nav className="fixed top-0 z-50 w-full border-b-2 border-muted bg-background/80 backdrop-blur-xl">
+    <nav className="fixed top-0 z-50 w-full border-b-2 border-muted bg-background/80 backdrop-blur-xl transition-all duration-300">
       <div className="container mx-auto px-4 h-20 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-3 group">
           <div className="h-8 w-8 text-primary transition-transform group-hover:rotate-12">
             <Construction className="h-full w-full" />
           </div>
-          <span className="font-headline text-2xl font-bold tracking-tighter uppercase leading-none">
+          <span className="font-headline text-2xl md:text-3xl font-bold tracking-tighter uppercase leading-none">
             STR <span className="text-primary">mix</span>
           </span>
         </Link>
 
-        {/* Desktop Nav */}
+        {/* Desktop Nav - Scaled for 16:9 displays */}
         <div className="hidden md:flex items-center gap-8">
           {navItems.map((item) => (
             <Link
@@ -56,8 +57,8 @@ export function Navbar() {
             </Link>
           ))}
           <Button asChild variant="outline" size="sm" className="border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground rounded-none h-10 px-6 font-bold uppercase text-[10px] tracking-widest">
-            <Link href="/login">
-              Portal
+            <Link href="/login" className="flex items-center gap-2">
+              <LogIn className="h-4 w-4" /> Portal
             </Link>
           </Button>
         </div>
