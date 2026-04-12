@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -11,7 +12,10 @@ import {
   LifeBuoy, 
   Settings, 
   LogOut,
-  ChevronRight
+  ChevronRight,
+  Image as ImageIcon,
+  Users as UsersIcon,
+  ShieldCheck
 } from "lucide-react"
 import { 
   Sidebar, 
@@ -31,8 +35,10 @@ import { Separator } from "@/components/ui/separator"
 const adminNav = [
   { name: "Overview", href: "/admin", icon: LayoutDashboard },
   { name: "Blog Posts", href: "/admin/blog", icon: FileText },
-  { name: "Review Moderation", href: "/admin/reviews", icon: Star },
+  { name: "Media Library", href: "/admin/media", icon: ImageIcon },
+  { name: "Reviews", href: "/admin/reviews", icon: Star },
   { name: "Support Tickets", href: "/admin/tickets", icon: LifeBuoy },
+  { name: "Team Management", href: "/admin/users", icon: UsersIcon },
 ]
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -61,7 +67,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 >
                   <Link href={item.href}>
                     <item.icon className="h-4 w-4" />
-                    <span className="font-bold uppercase text-xs tracking-widest">{item.name}</span>
+                    <span className="font-bold uppercase text-[10px] tracking-widest">{item.name}</span>
                     {pathname === item.href && <ChevronRight className="ml-auto h-4 w-4" />}
                   </Link>
                 </SidebarMenuButton>
@@ -73,16 +79,18 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <Separator className="bg-muted" />
           <SidebarMenu>
             <SidebarMenuItem>
-              <SidebarMenuButton tooltip="Settings" className="hover:bg-muted">
-                <Settings className="h-4 w-4" />
-                <span className="text-xs font-bold uppercase tracking-widest">Settings</span>
+              <SidebarMenuButton asChild tooltip="Settings" isActive={pathname === '/admin/settings'} className="hover:bg-muted">
+                <Link href="/admin/settings">
+                  <Settings className="h-4 w-4" />
+                  <span className="text-[10px] font-bold uppercase tracking-widest">System Settings</span>
+                </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
               <SidebarMenuButton asChild tooltip="Logout" className="hover:text-destructive">
                 <Link href="/">
                   <LogOut className="h-4 w-4" />
-                  <span className="text-xs font-bold uppercase tracking-widest">Exit Portal</span>
+                  <span className="text-[10px] font-bold uppercase tracking-widest">Exit Portal</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -95,15 +103,18 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <SidebarTrigger className="-ml-1" />
           <Separator orientation="vertical" className="mr-2 h-4" />
           <div className="flex-1">
-            <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">
+            <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
               {adminNav.find(n => n.href === pathname)?.name || "Dashboard"}
             </h2>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded bg-primary text-primary-foreground flex items-center justify-center font-bold text-xs uppercase">
-              AD
+          <div className="flex items-center gap-4">
+            <div className="hidden md:flex flex-col items-end">
+              <span className="text-xs font-bold uppercase">Mark Steel</span>
+              <span className="text-[10px] font-bold text-primary uppercase tracking-tighter">Super Admin</span>
             </div>
-            <span className="text-xs font-bold hidden sm:inline-block">Admin User</span>
+            <div className="h-10 w-10 rounded border-2 border-primary overflow-hidden">
+              <div className="bg-primary text-primary-foreground h-full w-full flex items-center justify-center font-bold">MS</div>
+            </div>
           </div>
         </header>
         <div className="p-6 md:p-10 animate-in fade-in slide-in-from-bottom-2 duration-500">
