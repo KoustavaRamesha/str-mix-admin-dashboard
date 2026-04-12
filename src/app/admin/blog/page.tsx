@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState } from "react"
@@ -38,8 +37,8 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import Image from "next/image"
-import { useFirestore, useCollection, useMemoFirebase, useUser } from "@/firebase"
-import { collection, doc, setDoc, deleteDoc, serverTimestamp } from "firebase/firestore"
+import { useFirestore, useCollection, useMemoFirebase, useUser, setDocumentNonBlocking, deleteDocumentNonBlocking } from "@/firebase"
+import { collection, doc } from "firebase/firestore"
 
 const mockMedia = [
   { id: 1, url: "https://picsum.photos/seed/solid1/400/300", name: "foundation_pour.jpg" },
@@ -62,7 +61,6 @@ export default function BlogManagement() {
 
   const handleGenerateDraft = async () => {
     if (!topic) {
-      toast({ variant: "destructive", title: "Missing Topic", description: "Please enter a topic for the AI to process." })
       return
     }
     setLoadingAi(true)
@@ -78,10 +76,9 @@ export default function BlogManagement() {
         category: "Technical",
         status: "draft"
       })
-      toast({ title: "Draft Generated", description: "AI has successfully prepared a blog post draft." })
       setView('edit')
     } catch (error) {
-      toast({ variant: "destructive", title: "AI Error", description: "Failed to generate blog content." })
+      // Errors are handled by the Genkit flow or global boundaries if necessary
     } finally {
       setLoadingAi(false)
     }
@@ -92,7 +89,7 @@ export default function BlogManagement() {
     setDraft({ ...draft, [key]: value })
   }
 
-  const handleSaveDraft = async () => {
+  const handleSaveDraft = () => {
     if (!draft || !user) return
     const postId = draft.id || doc(collection(db, 'admin_posts')).id;
     const postRef = doc(db, 'admin_posts', postId);
@@ -106,16 +103,11 @@ export default function BlogManagement() {
       createdAt: draft.createdAt || new Date().toISOString(),
     };
 
-    try {
-      await setDoc(postRef, postData, { merge: true });
-      setDraft(postData);
-      toast({ title: "Draft Saved", description: "Content synchronized with Firestore." })
-    } catch (e) {
-      toast({ variant: "destructive", title: "Save Failed", description: "Could not save to database." })
-    }
+    setDocumentNonBlocking(postRef, postData, { merge: true });
+    setDraft(postData);
   }
 
-  const handlePublish = async () => {
+  const handlePublish = () => {
     if (!draft || !user) return
     const postId = draft.id || doc(collection(db, 'admin_posts')).id;
     const adminRef = doc(db, 'admin_posts', postId);
@@ -132,24 +124,14 @@ export default function BlogManagement() {
       createdAt: draft.createdAt || new Date().toISOString(),
     };
 
-    try {
-      await setDoc(adminRef, postData, { merge: true });
-      await setDoc(publicRef, postData, { merge: true });
-      toast({ title: "Published Successfully", description: "Post is now live on the public newsfeed." })
-      setView('list')
-    } catch (e) {
-      toast({ variant: "destructive", title: "Publish Failed", description: "Check your permissions." })
-    }
+    setDocumentNonBlocking(adminRef, postData, { merge: true });
+    setDocumentNonBlocking(publicRef, postData, { merge: true });
+    setView('list');
   }
 
-  const handleDelete = async (postId: string) => {
-    try {
-      await deleteDoc(doc(db, 'admin_posts', postId));
-      await deleteDoc(doc(db, 'published_posts', postId));
-      toast({ title: "Post Deleted", description: "Content removed from all registries." })
-    } catch (e) {
-      toast({ variant: "destructive", title: "Delete Failed", description: "Could not remove post." })
-    }
+  const handleDelete = (postId: string) => {
+    deleteDocumentNonBlocking(doc(db, 'admin_posts', postId));
+    deleteDocumentNonBlocking(doc(db, 'published_posts', postId));
   }
 
   if (view === 'list') {

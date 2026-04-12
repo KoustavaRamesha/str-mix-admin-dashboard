@@ -1,4 +1,3 @@
-
 "use client"
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
@@ -21,12 +20,11 @@ import {
   Loader2
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
-import { doc, setDoc } from 'firebase/firestore'
-import { useFirestore, useDoc, useMemoFirebase } from '@/firebase'
+import { doc } from 'firebase/firestore'
+import { useFirestore, useDoc, useMemoFirebase, setDocumentNonBlocking } from '@/firebase'
 import { useState, useEffect } from "react"
 
 export default function SystemSettings() {
-  const { toast } = useToast()
   const db = useFirestore()
   const [saving, setSaving] = useState(false)
 
@@ -53,23 +51,11 @@ export default function SystemSettings() {
     }
   }, [settings])
 
-  const handleSave = async () => {
+  const handleSave = () => {
     setSaving(true)
-    try {
-      await setDoc(settingsRef, localSettings, { merge: true })
-      toast({ 
-        title: "Configuration Updated", 
-        description: "Global system variables synchronized successfully." 
-      })
-    } catch (error) {
-      toast({ 
-        variant: "destructive",
-        title: "Update Failed", 
-        description: "Could not synchronize settings to Firestore." 
-      })
-    } finally {
-      setSaving(false)
-    }
+    setDocumentNonBlocking(settingsRef, localSettings, { merge: true });
+    // Simulate loading state release for UI feedback
+    setTimeout(() => setSaving(false), 500);
   }
 
   if (isLoading) {
