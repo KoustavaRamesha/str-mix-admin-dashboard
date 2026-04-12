@@ -104,7 +104,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-left">
+          <div className="max-w-md mx-auto text-left">
             <div className="p-6 bg-muted/10 border-2 border-muted space-y-4">
               <div className="flex items-center gap-2 text-primary">
                 <UsersIcon className="h-4 w-4" />
@@ -116,19 +116,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   <code className="text-[11px] font-mono bg-background p-2 border border-muted block flex-1 break-all text-primary">{user.uid}</code>
                 </div>
               </div>
-            </div>
-
-            <div className="p-6 bg-primary/5 border-2 border-primary/20 space-y-4">
-              <div className="flex items-center gap-2 text-primary">
-                <Database className="h-4 w-4" />
-                <h3 className="text-[10px] font-bold uppercase tracking-widest">Setup Instructions</h3>
-              </div>
-              <ol className="text-[9px] font-bold uppercase text-muted-foreground space-y-2 list-decimal list-inside">
-                <li>Go to <span className="text-foreground">Firebase Console</span></li>
-                <li>Navigate to <span className="text-foreground">Firestore Database</span></li>
-                <li>Create collection: <code className="text-primary lowercase">roles_admin</code></li>
-                <li>Add document with ID: <code className="text-primary">{user.uid}</code></li>
-              </ol>
             </div>
           </div>
 
