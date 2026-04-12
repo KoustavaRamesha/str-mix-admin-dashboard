@@ -12,20 +12,34 @@ import Link from "next/link"
 
 export default function LoginPage() {
   const [loading, setLoading] = useState(false)
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
   const router = useRouter()
   const { toast } = useToast()
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
-    // Simulate auth
+    
+    // Simulate network latency
     await new Promise(r => setTimeout(r, 1000))
-    setLoading(false)
-    toast({
-      title: "Authenticated",
-      description: "Redirecting to admin portal...",
-    })
-    router.push("/admin")
+    
+    // Mock authentication check
+    if (email === "admin@solidsite.digital" && password === "admin") {
+      setLoading(false)
+      toast({
+        title: "Identity Verified",
+        description: "Access granted. Loading command center...",
+      })
+      router.push("/admin")
+    } else {
+      setLoading(false)
+      toast({
+        variant: "destructive",
+        title: "Security Breach",
+        description: "Invalid credentials provided. Access denied.",
+      })
+    }
   }
 
   return (
@@ -52,20 +66,40 @@ export default function LoginPage() {
             <form onSubmit={handleLogin} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email" className="text-[10px] font-bold uppercase tracking-widest">Admin Email</Label>
-                <Input id="email" type="email" placeholder="admin@solidsite.digital" required className="bg-background rounded-none" />
+                <Input 
+                  id="email" 
+                  type="email" 
+                  placeholder="admin@solidsite.digital" 
+                  required 
+                  className="bg-background rounded-none"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="pass" className="text-[10px] font-bold uppercase tracking-widest">Security Password</Label>
-                <Input id="pass" type="password" required className="bg-background rounded-none" />
+                <Input 
+                  id="pass" 
+                  type="password" 
+                  required 
+                  className="bg-background rounded-none"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
               </div>
               <Button type="submit" className="w-full bg-primary text-primary-foreground font-bold uppercase rounded-none h-12 mt-4" disabled={loading}>
                 {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : "Verify Identity"}
               </Button>
             </form>
           </CardContent>
-          <CardFooter className="bg-muted/10 border-t p-4 flex justify-between text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-            <span>v1.0.4-stable</span>
-            <Link href="/" className="hover:text-primary underline">Return Home</Link>
+          <CardFooter className="bg-muted/10 border-t p-4 flex flex-col items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+            <div className="flex justify-between w-full">
+              <span>v1.0.4-stable</span>
+              <Link href="/" className="hover:text-primary underline">Return Home</Link>
+            </div>
+            <div className="p-2 bg-background/50 border border-muted w-full text-center">
+              <span className="text-primary">Test Account:</span> admin@solidsite.digital / admin
+            </div>
           </CardFooter>
         </Card>
       </div>
