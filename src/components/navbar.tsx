@@ -27,31 +27,31 @@ export function Navbar() {
 
   return (
     <nav className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-2">
-          <Construction className="h-6 w-6 text-primary" />
-          <span className="font-headline text-xl font-bold tracking-tighter uppercase">
+      <div className="container mx-auto px-4 h-24 flex items-center justify-between">
+        <Link href="/" className="flex items-center gap-3">
+          <Construction className="h-8 w-8 text-primary" />
+          <span className="font-headline text-2xl md:text-3xl font-bold tracking-tighter uppercase">
             STR <span className="text-primary">mix</span>
           </span>
         </Link>
 
         {/* Desktop Nav */}
-        <div className="hidden md:flex items-center gap-6">
+        <div className="hidden md:flex items-center gap-8">
           {navItems.map((item) => (
             <Link
               key={item.href}
               href={item.href}
               className={cn(
-                "text-sm font-medium transition-colors hover:text-primary",
+                "text-md font-bold uppercase tracking-widest transition-colors hover:text-primary",
                 pathname === item.href ? "text-primary" : "text-muted-foreground"
               )}
             >
               {item.name}
             </Link>
           ))}
-          <Button asChild variant="outline" size="sm" className="gap-2 border-primary/50 hover:bg-primary/10">
+          <Button asChild variant="outline" size="lg" className="gap-2 border-primary/50 hover:bg-primary/10 rounded-none h-12 px-6 font-bold uppercase text-xs">
             <Link href="/login">
-              <LogIn className="h-4 w-4" />
+              <LogIn className="h-5 w-5" />
               Admin
             </Link>
           </Button>
@@ -62,28 +62,28 @@ export function Navbar() {
           className="md:hidden text-foreground"
           onClick={() => setIsOpen(!isOpen)}
         >
-          {isOpen ? <X /> : <Menu />}
+          {isOpen ? <X className="h-8 w-8" /> : <Menu className="h-8 w-8" />}
         </button>
       </div>
 
       {/* Mobile Nav */}
       {isOpen && (
-        <div className="md:hidden border-b bg-background p-4 flex flex-col gap-4 animate-in slide-in-from-top-4">
+        <div className="md:hidden border-b bg-background p-6 flex flex-col gap-6 animate-in slide-in-from-top-4">
           {navItems.map((item) => (
             <Link
               key={item.href}
               href={item.href}
               onClick={() => setIsOpen(false)}
               className={cn(
-                "text-base font-medium transition-colors hover:text-primary",
+                "text-lg font-bold uppercase tracking-widest transition-colors hover:text-primary",
                 pathname === item.href ? "text-primary" : "text-muted-foreground"
               )}
             >
               {item.name}
             </Link>
           ))}
-          <Button asChild variant="default" className="w-full">
-            <Link href="/login" onClick={() => setIsOpen(false)}>Admin Portal</Link>
+          <Button asChild variant="default" className="w-full h-14 rounded-none font-bold uppercase">
+            <Link href="/login" onClick={() => setIsOpen(false)}>Admin Portal Access</Link>
           </Button>
         </div>
       )}
