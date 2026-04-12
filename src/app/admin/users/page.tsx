@@ -28,10 +28,10 @@ import { useToast } from "@/hooks/use-toast"
 import { Input } from "@/components/ui/input"
 
 const mockAdmins = [
-  { id: 1, name: "Mark Steel", email: "mark@solidsite.digital", role: "Super Admin", 2fa: true, status: "active", lastLogin: "12 mins ago" },
-  { id: 2, name: "Sarah Concrete", email: "sarah@solidsite.digital", role: "Editor", 2fa: false, status: "active", lastLogin: "2 hours ago" },
-  { id: 3, name: "Dave Mason", email: "dave@solidsite.digital", role: "Moderator", 2fa: true, status: "active", lastLogin: "1 day ago" },
-  { id: 4, name: "John Masonry", email: "john@external.com", role: "Moderator", 2fa: false, status: "invited", lastLogin: "N/A" },
+  { id: 1, name: "Mark Steel", email: "mark@solidsite.digital", role: "Super Admin", twoFactorEnabled: true, status: "active", lastLogin: "12 mins ago" },
+  { id: 2, name: "Sarah Concrete", email: "sarah@solidsite.digital", role: "Editor", twoFactorEnabled: false, status: "active", lastLogin: "2 hours ago" },
+  { id: 3, name: "Dave Mason", email: "dave@solidsite.digital", role: "Moderator", twoFactorEnabled: true, status: "active", lastLogin: "1 day ago" },
+  { id: 4, name: "John Masonry", email: "john@external.com", role: "Moderator", twoFactorEnabled: false, status: "invited", lastLogin: "N/A" },
 ]
 
 export default function UserManagement() {
@@ -136,7 +136,7 @@ export default function UserManagement() {
                 </TableCell>
                 <TableCell>
                   <div className="flex items-center gap-2">
-                    {admin.2fa ? (
+                    {admin.twoFactorEnabled ? (
                       <Badge className="bg-green-500/10 text-green-500 text-[8px] uppercase border-none">2FA Active</Badge>
                     ) : (
                       <Badge variant="outline" className="text-muted-foreground text-[8px] uppercase border-muted">2FA Disabled</Badge>
