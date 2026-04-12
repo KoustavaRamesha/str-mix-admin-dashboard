@@ -2,44 +2,37 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { Construction, Loader2, Lock } from "lucide-react"
+import { Construction, Loader2, Lock, AlertTriangle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card"
-import { useToast } from "@/hooks/use-toast"
 import Link from "next/link"
+import { useAuth, initiateEmailSignIn, useUser } from "@/firebase"
 
 export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const router = useRouter()
-  const { toast } = useToast()
+  const auth = useAuth()
+  const { user } = useUser()
+
+  // Redirect if already logged in
+  if (user) {
+    router.push('/admin')
+  }
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     
-    // Simulate network latency
-    await new Promise(r => setTimeout(r, 1000))
+    // Auth helper handles the Firebase side
+    initiateEmailSignIn(auth, email, password)
     
-    // Mock authentication check
-    if (email === "admin@solidsite.digital" && password === "admin") {
-      setLoading(false)
-      toast({
-        title: "Identity Verified",
-        description: "Access granted. Loading command center...",
-      })
-      router.push("/admin")
-    } else {
-      setLoading(false)
-      toast({
-        variant: "destructive",
-        title: "Security Breach",
-        description: "Invalid credentials provided. Access denied.",
-      })
-    }
+    // Auth state is handled globally by FirebaseProvider
+    // Wait briefly for redirect or error
+    setTimeout(() => setLoading(false), 2000)
   }
 
   return (
@@ -69,9 +62,9 @@ export default function LoginPage() {
                 <Input 
                   id="email" 
                   type="email" 
-                  placeholder="admin@solidsite.digital" 
+                  placeholder="admin@strmix.digital" 
                   required 
-                  className="bg-background rounded-none"
+                  className="bg-background rounded-none border-muted h-12"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                 />
@@ -82,7 +75,7 @@ export default function LoginPage() {
                   id="pass" 
                   type="password" 
                   required 
-                  className="bg-background rounded-none"
+                  className="bg-background rounded-none border-muted h-12"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                 />
@@ -92,13 +85,16 @@ export default function LoginPage() {
               </Button>
             </form>
           </CardContent>
-          <CardFooter className="bg-muted/10 border-t p-4 flex flex-col items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-            <div className="flex justify-between w-full">
-              <span>v1.0.4-stable</span>
-              <Link href="/" className="hover:text-primary underline">Return Home</Link>
+          <CardFooter className="bg-muted/10 border-t p-6 flex flex-col gap-4">
+            <div className="flex items-start gap-3 bg-yellow-500/10 p-3 border border-yellow-500/30">
+              <AlertTriangle className="h-4 w-4 text-yellow-500 shrink-0 mt-0.5" />
+              <p className="text-[10px] font-bold uppercase text-muted-foreground leading-tight">
+                Notice: Ensure your administrator account exists in the Firebase Console and has a record in the <code className="text-primary font-mono lowercase">roles_admin</code> collection.
+              </p>
             </div>
-            <div className="p-2 bg-background/50 border border-muted w-full text-center">
-              <span className="text-primary">Test Account:</span> admin@solidsite.digital / admin
+            <div className="flex justify-between w-full text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+              <span>v1.4.2-stable</span>
+              <Link href="/" className="hover:text-primary underline">Return Home</Link>
             </div>
           </CardFooter>
         </Card>

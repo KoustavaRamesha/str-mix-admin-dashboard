@@ -1,9 +1,8 @@
-
 "use client"
 
 import * as React from "react"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { 
   Construction, 
   LayoutDashboard, 
@@ -15,7 +14,7 @@ import {
   ChevronRight,
   Image as ImageIcon,
   Users as UsersIcon,
-  ShieldCheck
+  Loader2
 } from "lucide-react"
 import { 
   Sidebar, 
@@ -31,6 +30,8 @@ import {
   SidebarInset
 } from "@/components/ui/sidebar"
 import { Separator } from "@/components/ui/separator"
+import { useUser, useAuth } from "@/firebase"
+import { signOut } from "firebase/auth"
 
 const adminNav = [
   { name: "Overview", href: "/admin", icon: LayoutDashboard },
@@ -43,6 +44,33 @@ const adminNav = [
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
+  const router = useRouter()
+  const { user, isUserLoading } = useUser()
+  const auth = useAuth()
+
+  React.useEffect(() => {
+    if (!isUserLoading && !user) {
+      router.push('/login')
+    }
+  }, [user, isUserLoading, router])
+
+  const handleLogout = async () => {
+    await signOut(auth)
+    router.push('/login')
+  }
+
+  if (isUserLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background industrial-grid">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-12 w-12 animate-spin text-primary" />
+          <p className="text-xs font-bold uppercase tracking-[0.3em] text-muted-foreground">Initializing Command Center...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (!user) return null
 
   return (
     <SidebarProvider>
@@ -87,11 +115,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Logout" className="hover:text-destructive">
-                <Link href="/">
-                  <LogOut className="h-4 w-4" />
-                  <span className="text-[10px] font-bold uppercase tracking-widest">Exit Portal</span>
-                </Link>
+              <SidebarMenuButton onClick={handleLogout} tooltip="Logout" className="hover:text-destructive">
+                <LogOut className="h-4 w-4" />
+                <span className="text-[10px] font-bold uppercase tracking-widest">Exit Portal</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>
@@ -109,11 +135,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </div>
           <div className="flex items-center gap-4">
             <div className="hidden md:flex flex-col items-end">
-              <span className="text-xs font-bold uppercase">Mark Steel</span>
-              <span className="text-[10px] font-bold text-primary uppercase tracking-tighter">Super Admin</span>
+              <span className="text-xs font-bold uppercase">{user.displayName || user.email?.split('@')[0]}</span>
+              <span className="text-[10px] font-bold text-primary uppercase tracking-tighter">Verified Administrator</span>
             </div>
             <div className="h-10 w-10 rounded border-2 border-primary overflow-hidden">
-              <div className="bg-primary text-primary-foreground h-full w-full flex items-center justify-center font-bold">MS</div>
+              <div className="bg-primary text-primary-foreground h-full w-full flex items-center justify-center font-bold">
+                {user.email?.charAt(0).toUpperCase() || 'AD'}
+              </div>
             </div>
           </div>
         </header>

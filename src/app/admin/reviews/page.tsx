@@ -22,26 +22,28 @@ import {
   Loader2, 
   ShieldAlert, 
   Trash2, 
-  MoreVertical,
   Search,
   Settings as SettingsIcon,
   ToggleLeft,
   Filter
 } from "lucide-react"
-import { useToast } from "@/hooks/use-toast"
 import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
-import { useFirestore, useCollection, useMemoFirebase, setDocumentNonBlocking, deleteDocumentNonBlocking } from "@/firebase"
+import { useFirestore, useCollection, useMemoFirebase, setDocumentNonBlocking, deleteDocumentNonBlocking, useUser } from "@/firebase"
 import { collection, doc } from "firebase/firestore"
 
 export default function ReviewModeration() {
   const db = useFirestore()
+  const { user } = useUser()
   const [selected, setSelected] = useState<string[]>([])
   const [aiSummary, setAiSummary] = useState<string | null>(null)
   const [loadingAi, setLoadingAi] = useState(false)
-  const { toast } = useToast()
 
-  const reviewsQuery = useMemoFirebase(() => collection(db, 'admin_reviews'), [db]);
+  const reviewsQuery = useMemoFirebase(() => {
+    if (!user) return null;
+    return collection(db, 'admin_reviews');
+  }, [db, user]);
+
   const { data: reviews, isLoading: reviewsLoading } = useCollection(reviewsQuery);
 
   const handleStatusChange = (review: any, status: string) => {
@@ -71,8 +73,6 @@ export default function ReviewModeration() {
         reviews: reviews.map(r => r.body) 
       })
       setAiSummary(result.summary)
-    } catch (error) {
-      // Handled by Genkit/boundaries
     } finally {
       setLoadingAi(false)
     }
@@ -116,7 +116,7 @@ export default function ReviewModeration() {
             </div>
             <div>
               <CardTitle className="text-xs font-bold uppercase tracking-widest">AI Sentiment Analysis</CardTitle>
-              <CardDescription className="text-[10px] uppercase">Synthesized from {reviews?.length || 0} pending submissions</CardDescription>
+              <CardDescription className="text-[10px] uppercase">Synthesized from {reviews?.length || 0} submissions</CardDescription>
             </div>
           </CardHeader>
           <CardContent className="pb-4">
@@ -175,7 +175,7 @@ export default function ReviewModeration() {
                       <TableCell>
                         <div className="flex flex-col">
                           <span className="font-bold text-xs uppercase">{review.authorName}</span>
-                          <span className="text-[8px] text-muted-foreground font-bold uppercase">{review.createdAt}</span>
+                          <span className="text-[8px] text-muted-foreground font-bold uppercase">{new Date(review.createdAt).toLocaleDateString()}</span>
                         </div>
                       </TableCell>
                       <TableCell>

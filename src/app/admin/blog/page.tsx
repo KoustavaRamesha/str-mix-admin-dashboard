@@ -14,18 +14,14 @@ import {
   Plus, 
   PenSquare, 
   Search, 
-  Filter, 
-  MoreVertical,
   ArrowLeft,
   Save,
   Globe,
   Settings as SettingsIcon,
-  Layout,
   BarChart3,
   ImageIcon,
   X
 } from "lucide-react"
-import { useToast } from "@/hooks/use-toast"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -52,17 +48,18 @@ export default function BlogManagement() {
   const [topic, setTopic] = useState("")
   const [loadingAi, setLoadingAi] = useState(false)
   const [draft, setDraft] = useState<any>(null)
-  const { toast } = useToast()
   const db = useFirestore()
   const { user } = useUser()
 
-  const postsQuery = useMemoFirebase(() => collection(db, 'admin_posts'), [db]);
+  const postsQuery = useMemoFirebase(() => {
+    if (!user) return null;
+    return collection(db, 'admin_posts');
+  }, [db, user]);
+  
   const { data: posts, isLoading: postsLoading } = useCollection(postsQuery);
 
   const handleGenerateDraft = async () => {
-    if (!topic) {
-      return
-    }
+    if (!topic) return
     setLoadingAi(true)
     try {
       const result = await adminDraftBlogContentGeneration({ topic })
@@ -77,8 +74,6 @@ export default function BlogManagement() {
         status: "draft"
       })
       setView('edit')
-    } catch (error) {
-      // Errors are handled by the Genkit flow or global boundaries if necessary
     } finally {
       setLoadingAi(false)
     }
