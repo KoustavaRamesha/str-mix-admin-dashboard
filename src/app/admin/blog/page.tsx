@@ -24,12 +24,22 @@ import {
   Settings as SettingsIcon,
   Tag,
   Layout,
-  BarChart3
+  BarChart3,
+  ImageIcon,
+  X
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import Image from "next/image"
 
 const mockPosts = [
   { id: 1, title: "Concrete Curing Times", slug: "concrete-curing-times", status: "published", category: "Technical", views: "1.2k", date: "2023-10-24" },
@@ -37,11 +47,24 @@ const mockPosts = [
   { id: 3, title: "Maintenance Tips", slug: "maintenance-tips", status: "scheduled", category: "Maintenance", views: "0", date: "2023-12-05" },
 ]
 
+const mockMedia = [
+  { id: 1, url: "https://picsum.photos/seed/solid1/400/300", name: "foundation_pour.jpg" },
+  { id: 2, url: "https://picsum.photos/seed/solid2/400/300", name: "site_visit.jpg" },
+  { id: 3, url: "https://picsum.photos/seed/solid3/400/300", name: "finished_driveway.jpg" },
+  { id: 4, url: "https://picsum.photos/seed/solid4/400/300", name: "concrete_texture.jpg" },
+]
+
 export default function BlogManagement() {
   const [view, setView] = useState<'list' | 'edit'>('list')
   const [topic, setTopic] = useState("")
   const [loadingAi, setLoadingAi] = useState(false)
-  const [draft, setDraft] = useState<{ title: string; body: string; summary: string } | null>(null)
+  const [draft, setDraft] = useState<{ 
+    title: string; 
+    body: string; 
+    summary: string;
+    featuredImage?: string;
+    scheduledDate?: string;
+  } | null>(null)
   const { toast } = useToast()
 
   const handleGenerateDraft = async () => {
@@ -52,7 +75,11 @@ export default function BlogManagement() {
     setLoadingAi(true)
     try {
       const result = await adminDraftBlogContentGeneration({ topic })
-      setDraft(result)
+      setDraft({
+        ...result,
+        featuredImage: "",
+        scheduledDate: ""
+      })
       toast({ title: "Draft Generated", description: "AI has successfully prepared a blog post draft." })
       setView('edit')
     } catch (error) {
@@ -60,6 +87,20 @@ export default function BlogManagement() {
     } finally {
       setLoadingAi(false)
     }
+  }
+
+  const updateDraft = (key: string, value: string) => {
+    if (!draft) return
+    setDraft({ ...draft, [key]: value })
+  }
+
+  const handleSaveDraft = () => {
+    toast({ title: "Draft Saved", description: "Content and metadata persistent across session." })
+  }
+
+  const handlePublish = () => {
+    toast({ title: "Published Successfully", description: "Post is now live on the public newsfeed." })
+    setView('list')
   }
 
   if (view === 'list') {
@@ -74,7 +115,10 @@ export default function BlogManagement() {
             <Button 
               variant="outline" 
               className="rounded-none font-bold uppercase text-[10px] border-muted"
-              onClick={() => setView('edit')}
+              onClick={() => {
+                setDraft({ title: "", body: "", summary: "", featuredImage: "", scheduledDate: "" })
+                setView('edit')
+              }}
             >
               <PenSquare className="h-3 w-3 mr-2" /> New Manual
             </Button>
@@ -144,7 +188,10 @@ export default function BlogManagement() {
                 {mockPosts.map((post) => (
                   <TableRow key={post.id} className="hover:bg-muted/10">
                     <TableCell>
-                      <div className="font-bold text-sm uppercase group cursor-pointer" onClick={() => setView('edit')}>
+                      <div className="font-bold text-sm uppercase group cursor-pointer" onClick={() => {
+                        setDraft({ title: post.title, body: "Existing content load...", summary: "", featuredImage: "", scheduledDate: "" })
+                        setView('edit')
+                      }}>
                         {post.title}
                         <p className="text-[9px] text-muted-foreground font-normal lowercase">/{post.slug}</p>
                       </div>
@@ -190,8 +237,8 @@ export default function BlogManagement() {
           </div>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm" className="rounded-none h-9 text-[10px] font-bold uppercase border-muted"><Save className="h-3 w-3 mr-2" /> Save Draft</Button>
-          <Button size="sm" className="rounded-none h-9 text-[10px] font-bold uppercase bg-primary text-primary-foreground"><Globe className="h-3 w-3 mr-2" /> Publish Now</Button>
+          <Button variant="outline" size="sm" onClick={handleSaveDraft} className="rounded-none h-9 text-[10px] font-bold uppercase border-muted"><Save className="h-3 w-3 mr-2" /> Save Draft</Button>
+          <Button size="sm" onClick={handlePublish} className="rounded-none h-9 text-[10px] font-bold uppercase bg-primary text-primary-foreground"><Globe className="h-3 w-3 mr-2" /> Publish Now</Button>
         </div>
       </div>
 
@@ -212,7 +259,8 @@ export default function BlogManagement() {
                   <div className="space-y-2">
                     <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Main Title</Label>
                     <Input 
-                      defaultValue={draft?.title || ""} 
+                      value={draft?.title || ""} 
+                      onChange={(e) => updateDraft('title', e.target.value)}
                       placeholder="Enter catch-phrase title..." 
                       className="bg-background rounded-none text-2xl font-headline font-bold h-14 border-muted"
                     />
@@ -226,7 +274,8 @@ export default function BlogManagement() {
                         ))}
                       </div>
                       <Textarea 
-                        defaultValue={draft?.body || ""} 
+                        value={draft?.body || ""} 
+                        onChange={(e) => updateDraft('body', e.target.value)}
                         placeholder="Industrial insights start here..." 
                         className="bg-background rounded-none min-h-[500px] border-none font-mono text-sm focus-visible:ring-0"
                       />
@@ -235,6 +284,11 @@ export default function BlogManagement() {
                 </TabsContent>
                 <TabsContent value="preview" className="mt-0 prose prose-invert max-w-none">
                   <div className="space-y-6">
+                    {draft?.featuredImage && (
+                      <div className="relative h-64 w-full border-2 border-muted">
+                        <Image src={draft.featuredImage} alt="Featured" fill className="object-cover" />
+                      </div>
+                    )}
                     <h1 className="text-4xl font-headline font-bold uppercase tracking-tighter text-primary">{draft?.title || "Untitled Post"}</h1>
                     <div className="whitespace-pre-wrap font-body text-muted-foreground text-lg leading-relaxed">
                       {draft?.body || "No content generated yet."}
@@ -271,14 +325,56 @@ export default function BlogManagement() {
               </div>
               <div className="space-y-2">
                 <Label className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">Schedule Date</Label>
-                <Input type="datetime-local" className="bg-background rounded-none border-muted h-9 text-xs" />
+                <Input 
+                  type="datetime-local" 
+                  value={draft?.scheduledDate || ""}
+                  onChange={(e) => updateDraft('scheduledDate', e.target.value)}
+                  className="bg-background rounded-none border-muted h-9 text-xs" 
+                />
               </div>
               <Separator />
               <div className="space-y-2">
                 <Label className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">Featured Image</Label>
-                <div className="border-2 border-dashed border-muted h-24 flex flex-center items-center justify-center text-muted-foreground hover:border-primary cursor-pointer transition-colors text-[10px] uppercase font-bold">
-                  Select Asset
-                </div>
+                
+                {draft?.featuredImage ? (
+                  <div className="relative h-32 w-full group border-2 border-muted">
+                    <Image src={draft.featuredImage} alt="Featured" fill className="object-cover" />
+                    <button 
+                      onClick={() => updateDraft('featuredImage', '')}
+                      className="absolute top-1 right-1 bg-background/80 p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                ) : (
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <div className="border-2 border-dashed border-muted h-24 flex flex-col items-center justify-center text-muted-foreground hover:border-primary hover:text-primary cursor-pointer transition-colors text-[10px] uppercase font-bold gap-2">
+                        <ImageIcon className="h-4 w-4" />
+                        Select Asset
+                      </div>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-2xl bg-card border-2 border-muted">
+                      <DialogHeader>
+                        <DialogTitle className="uppercase tracking-widest text-sm">Media Selector</DialogTitle>
+                      </DialogHeader>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4">
+                        {mockMedia.map(media => (
+                          <div 
+                            key={media.id} 
+                            onClick={() => updateDraft('featuredImage', media.url)}
+                            className="relative aspect-square cursor-pointer border-2 border-muted hover:border-primary transition-all group overflow-hidden"
+                          >
+                            <Image src={media.url} alt={media.name} fill className="object-cover" />
+                            <div className="absolute inset-0 bg-primary/20 opacity-0 group-hover:opacity-100 flex items-center justify-center">
+                              <Plus className="h-6 w-6 text-white" />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -294,16 +390,16 @@ export default function BlogManagement() {
               <div className="space-y-1">
                 <div className="flex justify-between">
                   <Label className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">Meta Title</Label>
-                  <span className="text-[8px] text-muted-foreground">0/60</span>
+                  <span className="text-[8px] text-muted-foreground">{draft?.title.length || 0}/60</span>
                 </div>
-                <Input className="bg-background rounded-none border-muted h-9 text-xs" />
+                <Input defaultValue={draft?.title} className="bg-background rounded-none border-muted h-9 text-xs" />
               </div>
               <div className="space-y-1">
                 <div className="flex justify-between">
                   <Label className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">Meta Desc</Label>
-                  <span className="text-[8px] text-muted-foreground">0/160</span>
+                  <span className="text-[8px] text-muted-foreground">{draft?.summary.length || 0}/160</span>
                 </div>
-                <Textarea className="bg-background rounded-none border-muted h-20 text-xs" />
+                <Textarea defaultValue={draft?.summary} className="bg-background rounded-none border-muted h-20 text-xs" />
               </div>
               <div className="p-2 bg-muted/20 border-l-2 border-green-500">
                 <p className="text-[9px] font-bold text-green-500 uppercase">SEO Strength: High</p>
