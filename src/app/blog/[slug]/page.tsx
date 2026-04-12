@@ -63,12 +63,13 @@ export default function BlogPostPage({ params }: { params: Promise<{ slug: strin
             <ChevronLeft className="h-4 w-4" /> Back to Newsfeed
           </Link>
 
-          <article className="bg-card border-2 border-muted overflow-hidden shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-700">
+          <article className="bg-card border-2 border-muted overflow-hidden shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="relative h-[400px]">
               <Image
                 src={post.featuredImage || "https://picsum.photos/seed/post/1200/800"}
                 alt={post.title}
                 fill
+                priority
                 className="object-cover"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex items-end p-8 md:p-12">

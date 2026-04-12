@@ -1,3 +1,4 @@
+
 import Image from "next/image"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
@@ -56,11 +57,12 @@ export default function AboutPage() {
                 </div>
               </div>
 
-              <div className="relative h-[600px] border-4 border-muted grayscale hover:grayscale-0 transition-all duration-1000 shadow-xl">
+              <div className="relative h-[600px] border-4 border-muted grayscale hover:grayscale-0 transition-all duration-300 shadow-xl">
                 <Image
                   src={heroImg?.imageUrl || "https://picsum.photos/seed/about/800/1000"}
                   alt="Industrial bridge construction"
                   fill
+                  priority
                   className="object-cover"
                   data-ai-hint="industrial bridge"
                 />

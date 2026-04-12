@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -48,6 +49,7 @@ export function Navbar() {
             <Link
               key={item.href}
               href={item.href}
+              prefetch={true}
               className={cn(
                 "text-xs font-bold uppercase tracking-[0.2em] transition-all hover:text-primary relative py-2",
                 pathname === item.href ? "text-primary after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-primary" : "text-muted-foreground"
@@ -57,7 +59,7 @@ export function Navbar() {
             </Link>
           ))}
           <Button asChild variant="outline" size="sm" className="border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground rounded-none h-10 px-6 font-bold uppercase text-[10px] tracking-widest">
-            <Link href="/login" className="flex items-center gap-2">
+            <Link href="/login" prefetch={true} className="flex items-center gap-2">
               <LogIn className="h-4 w-4" /> Portal
             </Link>
           </Button>
@@ -80,6 +82,7 @@ export function Navbar() {
             <Link
               key={item.href}
               href={item.href}
+              prefetch={true}
               onClick={() => setIsOpen(false)}
               className={cn(
                 "text-4xl font-headline font-bold uppercase tracking-tighter transition-colors",
@@ -91,7 +94,7 @@ export function Navbar() {
           ))}
           <div className="mt-auto">
             <Button asChild size="lg" className="w-full h-16 rounded-none font-bold uppercase text-xl bg-primary text-primary-foreground">
-              <Link href="/login" onClick={() => setIsOpen(false)}>Admin Access</Link>
+              <Link href="/login" prefetch={true} onClick={() => setIsOpen(false)}>Admin Access</Link>
             </Button>
           </div>
         </div>
