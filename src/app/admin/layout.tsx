@@ -16,7 +16,9 @@ import {
   Image as ImageIcon,
   Users as UsersIcon,
   Loader2,
-  ShieldAlert
+  ShieldAlert,
+  Database,
+  ArrowRight
 } from "lucide-react"
 import { 
   Sidebar, 
@@ -88,25 +90,56 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   if (!adminRole && !isAdminRoleLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background industrial-grid p-4 text-center">
-        <div className="max-w-md space-y-6 animate-in fade-in zoom-in duration-500">
+        <div className="max-w-xl w-full space-y-8 animate-in fade-in zoom-in duration-500">
           <div className="flex justify-center">
             <div className="h-20 w-20 bg-destructive/10 border-2 border-destructive flex items-center justify-center">
               <ShieldAlert className="h-10 w-10 text-destructive" />
             </div>
           </div>
+          
           <div className="space-y-2">
-            <h1 className="text-3xl font-headline font-bold uppercase tracking-tighter">Access <span className="text-destructive">Denied</span></h1>
-            <p className="text-muted-foreground text-sm font-bold uppercase tracking-widest leading-relaxed">
-              Authentication successful, but your account is not registered in the 'roles_admin' registry.
+            <h1 className="text-4xl font-headline font-bold uppercase tracking-tighter">Access <span className="text-destructive">Restricted</span></h1>
+            <p className="text-muted-foreground text-sm font-bold uppercase tracking-widest max-w-md mx-auto leading-relaxed">
+              Your identity is verified, but your account is not registered in the administrative registry.
             </p>
           </div>
-          <div className="pt-4 space-y-4">
-            <div className="p-4 bg-muted/20 border border-muted text-left">
-              <p className="text-[10px] font-bold uppercase text-muted-foreground mb-1">Your Unique ID (UID):</p>
-              <code className="text-[10px] font-mono break-all text-primary">{user.uid}</code>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-left">
+            <div className="p-6 bg-muted/10 border-2 border-muted space-y-4">
+              <div className="flex items-center gap-2 text-primary">
+                <UsersIcon className="h-4 w-4" />
+                <h3 className="text-[10px] font-bold uppercase tracking-widest">Your Credentials</h3>
+              </div>
+              <div className="space-y-1">
+                <p className="text-[10px] font-bold uppercase text-muted-foreground">Unique ID (UID):</p>
+                <div className="flex items-center gap-2">
+                  <code className="text-[11px] font-mono bg-background p-2 border border-muted block flex-1 break-all text-primary">{user.uid}</code>
+                </div>
+              </div>
             </div>
-            <Button onClick={handleLogout} variant="outline" className="w-full rounded-none uppercase font-bold text-[10px] tracking-widest">
-              Exit Portal
+
+            <div className="p-6 bg-primary/5 border-2 border-primary/20 space-y-4">
+              <div className="flex items-center gap-2 text-primary">
+                <Database className="h-4 w-4" />
+                <h3 className="text-[10px] font-bold uppercase tracking-widest">Setup Instructions</h3>
+              </div>
+              <ol className="text-[9px] font-bold uppercase text-muted-foreground space-y-2 list-decimal list-inside">
+                <li>Go to <span className="text-foreground">Firebase Console</span></li>
+                <li>Navigate to <span className="text-foreground">Firestore Database</span></li>
+                <li>Create collection: <code className="text-primary lowercase">roles_admin</code></li>
+                <li>Add document with ID: <code className="text-primary">{user.uid}</code></li>
+              </ol>
+            </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Button onClick={handleLogout} variant="outline" className="rounded-none uppercase font-bold text-[10px] tracking-widest px-8">
+              Sign Out
+            </Button>
+            <Button asChild className="rounded-none uppercase font-bold text-[10px] tracking-widest px-8 bg-primary text-primary-foreground">
+              <Link href="https://console.firebase.google.com/" target="_blank">
+                Open Firebase Console <ArrowRight className="ml-2 h-3 w-3" />
+              </Link>
             </Button>
           </div>
         </div>
