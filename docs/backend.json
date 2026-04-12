@@ -1,0 +1,469 @@
+{
+  "entities": {
+    "User": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "User",
+      "type": "object",
+      "description": "Represents a user of the SolidSite Digital platform, including authors of blog posts and administrators. Does not store authentication credentials.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the User entity."
+        },
+        "email": {
+          "type": "string",
+          "description": "The user's email address, used for communication and identification.",
+          "format": "email"
+        },
+        "role": {
+          "type": "string",
+          "description": "The role of the user, defining their access permissions within the system.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp when the user account was created.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "email",
+        "role",
+        "createdAt"
+      ]
+    },
+    "Category": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Category",
+      "type": "object",
+      "description": "Represents a category for organizing blog posts.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Category entity."
+        },
+        "name": {
+          "type": "string",
+          "description": "The human-readable name of the category (e.g., 'Industry News')."
+        },
+        "slug": {
+          "type": "string",
+          "description": "A URL-friendly, unique identifier for the category, used for SEO and routing."
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "slug"
+      ]
+    },
+    "Tag": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Tag",
+      "type": "object",
+      "description": "Represents a tag used to associate with blog posts for easier discovery and categorization.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Tag entity."
+        },
+        "name": {
+          "type": "string",
+          "description": "The human-readable name of the tag (e.g., 'Construction', 'Concrete')."
+        },
+        "slug": {
+          "type": "string",
+          "description": "A URL-friendly, unique identifier for the tag, used for SEO and routing."
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "slug"
+      ]
+    },
+    "Post": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Post",
+      "type": "object",
+      "description": "Represents a blog post or article published on the SolidSite Digital platform.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Post entity."
+        },
+        "title": {
+          "type": "string",
+          "description": "The title of the blog post."
+        },
+        "slug": {
+          "type": "string",
+          "description": "A unique, URL-friendly identifier for the post, crucial for SEO and permalinks."
+        },
+        "bodyHtml": {
+          "type": "string",
+          "description": "The full content of the blog post, stored as HTML from a rich text editor."
+        },
+        "authorId": {
+          "type": "string",
+          "description": "Reference to the User who authored this post. (Relationship: User 1:N Post)"
+        },
+        "categoryId": {
+          "type": "string",
+          "description": "Reference to the Category this post belongs to. (Relationship: Category 1:N Post)"
+        },
+        "tagIds": {
+          "type": "array",
+          "description": "References to Tags associated with this post. (Relationship: Tag N:N Post)",
+          "items": {
+            "type": "string"
+          }
+        },
+        "publishedAt": {
+          "type": "string",
+          "description": "The date and time when the blog post was officially published and made public.",
+          "format": "date-time"
+        },
+        "metaTitle": {
+          "type": "string",
+          "description": "SEO meta title for the blog post."
+        },
+        "metaDescription": {
+          "type": "string",
+          "description": "SEO meta description for the blog post."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp when the post was initially created in the system.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp when the post was last updated.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "slug",
+        "bodyHtml",
+        "authorId",
+        "categoryId",
+        "publishedAt",
+        "metaTitle",
+        "metaDescription",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "Review": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Review",
+      "type": "object",
+      "description": "Represents a customer review submitted through the website.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Review entity."
+        },
+        "authorName": {
+          "type": "string",
+          "description": "The name of the person who submitted the review."
+        },
+        "authorEmail": {
+          "type": "string",
+          "description": "The email address of the review author, primarily for moderation. Not publicly displayed.",
+          "format": "email"
+        },
+        "rating": {
+          "type": "number",
+          "description": "The numerical rating given by the author (e.g., 1 to 5 stars)."
+        },
+        "body": {
+          "type": "string",
+          "description": "The text content of the review."
+        },
+        "status": {
+          "type": "string",
+          "description": "The moderation status of the review.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp when the review was submitted.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "authorName",
+        "authorEmail",
+        "rating",
+        "body",
+        "status",
+        "createdAt"
+      ]
+    },
+    "SupportTicket": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "SupportTicket",
+      "type": "object",
+      "description": "Represents a support ticket or contact form submission from a user.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the SupportTicket entity."
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the person who submitted the ticket."
+        },
+        "email": {
+          "type": "string",
+          "description": "The email address of the ticket submitter for communication.",
+          "format": "email"
+        },
+        "subject": {
+          "type": "string",
+          "description": "The subject line of the support ticket."
+        },
+        "body": {
+          "type": "string",
+          "description": "The detailed message or query of the support ticket."
+        },
+        "status": {
+          "type": "string",
+          "description": "The current status of the support ticket.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp when the support ticket was created.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "email",
+        "subject",
+        "body",
+        "status",
+        "createdAt"
+      ]
+    },
+    "TicketReply": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "TicketReply",
+      "type": "object",
+      "description": "Represents a reply within a support ticket thread.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the TicketReply entity."
+        },
+        "ticketId": {
+          "type": "string",
+          "description": "Reference to the SupportTicket this reply belongs to. (Relationship: SupportTicket 1:N TicketReply)"
+        },
+        "body": {
+          "type": "string",
+          "description": "The content of the reply message."
+        },
+        "authorId": {
+          "type": "string",
+          "description": "Reference to the User who authored this reply (can be an admin or the original submitter). (Relationship: User 1:N TicketReply)"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp when the reply was created.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "ticketId",
+        "body",
+        "authorId",
+        "createdAt"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/users/{userId}",
+        "definition": {
+          "entityName": "User",
+          "schema": {
+            "$ref": "#/backend/entities/User"
+          },
+          "description": "Stores user profiles. Primarily for authenticated user data, potentially including denormalized display-related fields. User-specific roles for authorization are handled in `/roles_admin`."
+        }
+      },
+      {
+        "path": "/roles_admin/{userId}",
+        "definition": {
+          "entityName": "User",
+          "schema": {
+            "$ref": "#/backend/entities/User"
+          },
+          "description": "Dedicated collection for Database Access Control (DBAC). The mere existence of a document here (keyed by userId) grants administrative privileges. This ensures authorization independence by allowing a simple 'exists' check in security rules.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user who has an admin role."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/admin_posts/{postId}",
+        "definition": {
+          "entityName": "Post",
+          "schema": {
+            "$ref": "#/backend/entities/Post"
+          },
+          "description": "Stores all blog posts, including drafts and published versions, exclusively for administrative management. Admin users have full CRUD access. Updates to this collection trigger synchronization to '/published_posts' upon a post being published.",
+          "params": [
+            {
+              "name": "postId",
+              "description": "The unique identifier for the blog post."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/published_posts/{postId}",
+        "definition": {
+          "entityName": "Post",
+          "schema": {
+            "$ref": "#/backend/entities/Post"
+          },
+          "description": "Stores only published blog posts, optimized for public consumption. Read-only for all users, writeable only by admin (typically via a Cloud Function triggered by '/admin_posts' updates). Ensures QAPs for blog feed pages by only containing publicly visible data.",
+          "params": [
+            {
+              "name": "postId",
+              "description": "The unique identifier for the published blog post."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/categories/{categoryId}",
+        "definition": {
+          "entityName": "Category",
+          "schema": {
+            "$ref": "#/backend/entities/Category"
+          },
+          "description": "Stores categories for blog posts. Publicly readable, admin writeable. Used for content organization and filtering.",
+          "params": [
+            {
+              "name": "categoryId",
+              "description": "The unique identifier for the category."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/tags/{tagId}",
+        "definition": {
+          "entityName": "Tag",
+          "schema": {
+            "$ref": "#/backend/entities/Tag"
+          },
+          "description": "Stores tags for blog posts. Publicly readable, admin writeable. Used for content discovery and filtering.",
+          "params": [
+            {
+              "name": "tagId",
+              "description": "The unique identifier for the tag."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/admin_reviews/{reviewId}",
+        "definition": {
+          "entityName": "Review",
+          "schema": {
+            "$ref": "#/backend/entities/Review"
+          },
+          "description": "Stores all customer reviews (pending, approved, rejected) for administrative moderation. Public users can create new reviews here. Admin users have full CRUD access to moderate reviews. Approved reviews are synchronized to '/published_reviews'.",
+          "params": [
+            {
+              "name": "reviewId",
+              "description": "The unique identifier for the review."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/published_reviews/{reviewId}",
+        "definition": {
+          "entityName": "Review",
+          "schema": {
+            "$ref": "#/backend/entities/Review"
+          },
+          "description": "Stores only approved customer reviews, optimized for public display. Read-only for all users, writeable only by admin (typically via a Cloud Function triggered by '/admin_reviews' updates). Ensures QAPs for public review listings.",
+          "params": [
+            {
+              "name": "reviewId",
+              "description": "The unique identifier for the published review."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/support_tickets/{ticketId}",
+        "definition": {
+          "entityName": "SupportTicket",
+          "schema": {
+            "$ref": "#/backend/entities/SupportTicket"
+          },
+          "description": "Stores support tickets submitted by users or guests. Includes 'submittedById' for logged-in user ownership and 'email' for guest identification. Authenticated users can read/update their own tickets. Admin users have full CRUD access.",
+          "params": [
+            {
+              "name": "ticketId",
+              "description": "The unique identifier for the support ticket."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/support_tickets/{ticketId}/replies/{replyId}",
+        "definition": {
+          "entityName": "TicketReply",
+          "schema": {
+            "$ref": "#/backend/entities/TicketReply"
+          },
+          "description": "Stores replies for support tickets. Includes 'authorId' and denormalized 'ticketSubmittedById' (from the parent ticket) for authorization independence, allowing both the ticket submitter and admins to read replies without parent lookups. Only admins or the original submitter can create replies.",
+          "params": [
+            {
+              "name": "ticketId",
+              "description": "The unique identifier of the parent support ticket."
+            },
+            {
+              "name": "replyId",
+              "description": "The unique identifier for the ticket reply."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The Firestore structure is designed following the core principles of Authorization Independence, Structural Segregation, and Query as Protection (QAPs) to ensure a secure, scalable, and debuggable system. The primary goal is to simplify Firestore security rules by making access explicit through collection structure and denormalized data.\n\n1.  **Authorization Independence (Denormalization):**\n    *   For support ticket replies (`/support_tickets/{ticketId}/replies/{replyId}`), access to replies often depends on who owns the parent ticket. To avoid expensive `get()` calls in security rules, the `ticketSubmittedById` (representing the original submitter of the parent ticket) is denormalized and stored directly within each `TicketReply` document. This allows a reply's access to be determined atomically by its own fields and the `request.auth.uid`.\n    *   Global administrative roles are handled by existence checks: `/roles_admin/{userId}`. The mere presence of a document at this path grants admin privileges, eliminating the need to read the `User` document's `role` field for every authorization check.\n\n2.  **Structural Segregation & QAPs:**\n    *   **Blog Posts (`Post`):** To enforce QAPs and separate administrative data from public content, blog posts are split into two collections: `/admin_posts/{postId}` and `/published_posts/{postId}`.\n        *   `/admin_posts` contains all posts (drafts, published, archived) and is accessible only by administrators for full CRUD operations. Public users cannot read from this collection.\n        *   `/published_posts` contains only posts that have been explicitly published. This collection is read-only for all public users, making security rules simple (`allow read: true;`). Write operations to this collection are primarily handled by server-side logic (e.g., Cloud Functions) that synchronize data from `/admin_posts` when a post's status changes to `PUBLISHED`.\n        *   This segregation ensures that public queries for blog posts will inherently only ever retrieve published content, preventing data leakage and simplifying rule logic (rules are not filters).\n    *   **Reviews (`Review`):** Similarly, reviews are segregated into `/admin_reviews/{reviewId}` and `/published_reviews/{reviewId}`.\n        *   `/admin_reviews` is where all reviews are initially submitted (by public users) and moderated by administrators. Administrators have full CRUD access to manage and change the status of reviews.\n        *   `/published_reviews` contains only reviews that have been `APPROVED` by an administrator. Public users can only read from this collection. As with posts, server-side synchronization moves `APPROVED` reviews from `admin_reviews` to `published_reviews`, ensuring public queries only ever see approved content without complex `where` clauses in security rules.\n    *   **Support Tickets (`SupportTicket`):** A single collection `/support_tickets/{ticketId}` is used, but access is controlled by an `submittedById` field for individual users to access their own tickets, alongside blanket admin access. This follows the path-based ownership for user-owned data where `request.auth.uid` matches `resource.data.submittedById`.\n\n3.  **Explicit State Modeling:** Entities like `Post` and `Review` utilize explicit `status` fields (e.g., `DRAFT`, `PUBLISHED`; `PENDING`, `APPROVED`, `REJECTED`) to clearly define their lifecycle and control visibility, which is then reinforced by the structural segregation."
+  }
+}

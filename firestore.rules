@@ -1,0 +1,180 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    /**
+     * SolidSite Digital Security Rules
+     * 
+     * Core Philosophy:
+     * This ruleset implements a robust, multi-tier authorization model using Structural Segregation 
+     * and Authorization Independence. Access is primarily governed by a user's role (Admin) or 
+     * direct ownership of a resource.
+     * 
+     * Data Structure:
+     * - /roles_admin: Administrative privileges are granted via document existence in this collection.
+     * - /admin_posts vs /published_posts: Content management is physically separated from public consumption.
+     * - /support_tickets: Access is granted to the submitter (path/field matching) or administrators.
+     * 
+     * Key Security Decisions:
+     * - Admin Access: Handled via a dedicated `roles_admin` collection existence check to avoid document 
+     *   reads on the `users` collection for every request.
+     * - Public Feed: The blog feed and reviews feed are optimized for performance by being read-only 
+     *   collections (`published_posts`, `published_reviews`) that only contain approved content.
+     * - Denormalization: Access to ticket replies is authorized via a denormalized `ticketSubmittedById` 
+     *   field to avoid parent document lookups (joins) within the security rules.
+     * - Prototyping Flexibility: Schema validation is restricted to relational and authorization fields 
+     *   only, allowing for rapid front-end iteration on content fields.
+     */
+
+    // --- Helper Functions ---
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid));
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    // Checks if the user is the owner of the existing document being updated or deleted.
+    function isExistingOwner(ownerIdField) {
+      return isSignedIn() && resource != null && request.auth.uid == resource.data[ownerIdField];
+    }
+
+    // --- Collection Rules ---
+
+    /**
+     * @description Rules for the User profile collection. Users can manage their own profile.
+     * @path /users/{userId}
+     * @allow (get, list, update) if the authenticated user matches the userId.
+     * @deny (create, update) if the authenticated user attempts to modify another user's profile.
+     * @principle Enforces strict user-ownership for personal profile data.
+     */
+    match /users/{userId} {
+      allow get, list: if isOwner(userId) || isAdmin();
+      allow create: if isOwner(userId);
+      allow update: if isOwner(userId) && request.resource.data.id == userId;
+      allow delete: if isAdmin();
+    }
+
+    /**
+     * @description Rules for admin role assignment. Read-only for admins.
+     * @path /roles_admin/{userId}
+     * @allow (get) if signed in. (list) if admin.
+     * @deny (write) if any user attempts to modify admin privileges directly from the client.
+     * @principle Restricts administrative role management to server-side or manual interventions.
+     */
+    match /roles_admin/{userId} {
+      allow get: if isSignedIn();
+      allow list: if isAdmin();
+      allow create, update, delete: if false;
+    }
+
+    /**
+     * @description Rules for management of all blog posts (drafts and published).
+     * @path /admin_posts/{postId}
+     * @allow (read, write) if the user is an admin.
+     * @deny (read, write) if the user is a public guest or non-admin.
+     * @principle Structural Segregation: Only authorized staff can access the management collection.
+     */
+    match /admin_posts/{postId} {
+      allow get, list: if isAdmin();
+      allow create: if isAdmin() && request.resource.data.authorId == request.auth.uid;
+      allow update: if isAdmin() && resource != null;
+      allow delete: if isAdmin() && resource != null;
+    }
+
+    /**
+     * @description Rules for the public blog feed. Optimized for consumption.
+     * @path /published_posts/{postId}
+     * @allow (get, list) for all users.
+     * @deny (write) for all client-side requests.
+     * @principle Query as Protection: Public users only see content specifically synced to this collection.
+     */
+    match /published_posts/{postId} {
+      allow get, list: if true;
+      allow create, update, delete: if false; // Managed by Cloud Functions
+    }
+
+    /**
+     * @description Rules for blog post categories.
+     * @path /categories/{categoryId}
+     * @allow (get, list) for all users. (write) for admins.
+     * @deny (write) for non-admin users.
+     * @principle Publicly readable taxonomy managed by authorized staff.
+     */
+    match /categories/{categoryId} {
+      allow get, list: if true;
+      allow create, update, delete: if isAdmin();
+    }
+
+    /**
+     * @description Rules for blog post tags.
+     * @path /tags/{tagId}
+     * @allow (get, list) for all users. (write) for admins.
+     * @deny (write) for non-admin users.
+     * @principle Publicly readable taxonomy managed by authorized staff.
+     */
+    match /tags/{tagId} {
+      allow get, list: if true;
+      allow create, update, delete: if isAdmin();
+    }
+
+    /**
+     * @description Rules for review moderation. Allows public submission but restricted moderation.
+     * @path /admin_reviews/{reviewId}
+     * @allow (create) for all users. (read, update, delete) for admins.
+     * @deny (read) for public users to prevent leakage of unmoderated or private contact data.
+     * @principle Allows public input while maintaining strict administrative control over moderation state.
+     */
+    match /admin_reviews/{reviewId} {
+      allow get, list: if isAdmin();
+      allow create: if true; // Public submission
+      allow update, delete: if isAdmin() && resource != null;
+    }
+
+    /**
+     * @description Rules for public display of approved customer reviews.
+     * @path /published_reviews/{reviewId}
+     * @allow (get, list) for all users.
+     * @deny (write) for all client-side requests.
+     * @principle Ensures only vetted content is visible to the public.
+     */
+    match /published_reviews/{reviewId} {
+      allow get, list: if true;
+      allow create, update, delete: if false; // Managed by Cloud Functions
+    }
+
+    /**
+     * @description Rules for support tickets. Owners can track their own tickets.
+     * @path /support_tickets/{ticketId}
+     * @allow (create) for all users. (get, list, update) if owner or admin.
+     * @deny (get, list) if a user attempts to view a ticket they did not submit.
+     * @principle Path-based and field-based ownership for authenticated users.
+     */
+    match /support_tickets/{ticketId} {
+      allow create: if true;
+      allow get, list: if isAdmin() || (isSignedIn() && resource.data.submittedById == request.auth.uid);
+      allow update: if isAdmin() || (isExistingOwner('submittedById') && request.resource.data.submittedById == resource.data.submittedById);
+      allow delete: if isAdmin() && resource != null;
+    }
+
+    /**
+     * @description Rules for support ticket replies. Uses denormalized data for auth performance.
+     * @path /support_tickets/{ticketId}/replies/{replyId}
+     * @allow (get, list) if the user is the original ticket submitter or admin.
+     * @deny (create) if the user is not the admin or the original ticket submitter.
+     * @principle Authorization Independence: Validates access using fields on the reply itself rather than the parent ticket.
+     */
+    match /support_tickets/{ticketId}/replies/{replyId} {
+      allow get, list: if isAdmin() || (isSignedIn() && resource.data.ticketSubmittedById == request.auth.uid);
+      allow create: if isAdmin() || (isSignedIn() && request.resource.data.ticketSubmittedById == request.auth.uid);
+      allow update: if isAdmin() && resource != null;
+      allow delete: if isAdmin() && resource != null;
+    }
+  }
+}
