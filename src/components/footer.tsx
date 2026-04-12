@@ -10,7 +10,7 @@ export function Footer() {
             <Link href="/" className="flex items-center gap-2">
               <Construction className="h-6 w-6 text-primary" />
               <span className="font-headline text-xl font-bold tracking-tighter uppercase">
-                Solid<span className="text-primary">Site</span>
+                STR <span className="text-primary">mix</span>
               </span>
             </Link>
             <p className="text-muted-foreground text-sm leading-relaxed">
@@ -61,7 +61,7 @@ export function Footer() {
           </div>
         </div>
         <div className="border-t border-muted mt-12 pt-8 text-center text-xs text-muted-foreground">
-          &copy; {new Date().getFullYear()} SolidSite Digital. All rights reserved. Industrial Grade Excellence.
+          &copy; {new Date().getFullYear()} STR mix Digital. All rights reserved. Industrial Grade Excellence.
         </div>
       </div>
     </footer>

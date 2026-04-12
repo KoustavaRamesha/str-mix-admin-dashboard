@@ -31,7 +31,7 @@ export function Navbar() {
         <Link href="/" className="flex items-center gap-2">
           <Construction className="h-6 w-6 text-primary" />
           <span className="font-headline text-xl font-bold tracking-tighter uppercase">
-            Solid<span className="text-primary">Site</span>
+            STR <span className="text-primary">mix</span>
           </span>
         </Link>
 

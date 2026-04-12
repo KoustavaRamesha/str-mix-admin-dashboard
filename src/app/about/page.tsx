@@ -1,4 +1,3 @@
-
 import Image from "next/image"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
@@ -19,7 +18,7 @@ export default function AboutPage() {
               Built on <span className="text-primary">Integrity</span>
             </h1>
             <p className="text-xl text-muted-foreground max-w-2xl font-medium">
-              SolidSite Digital was founded on the principle that industrial strength should be paired with digital precision.
+              STR mix Digital was founded on the principle that industrial strength should be paired with digital precision.
             </p>
           </div>
         </section>

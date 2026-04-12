@@ -3,7 +3,7 @@ import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 
 export const metadata: Metadata = {
-  title: 'SolidSite Digital | Industrial Concrete Solutions',
+  title: 'STR mix Digital | Industrial Concrete Solutions',
   description: 'Built for strength, designed for precision. Premium concrete services and project management.',
 };
 

@@ -49,7 +49,7 @@ export default function LoginPage() {
           <Link href="/" className="inline-flex items-center gap-2 mb-4">
             <Construction className="h-10 w-10 text-primary" />
             <span className="font-headline text-3xl font-bold tracking-tighter uppercase">
-              Solid<span className="text-primary">Site</span>
+              STR <span className="text-primary">mix</span>
             </span>
           </Link>
           <h1 className="text-xl font-bold uppercase tracking-widest text-muted-foreground">Admin Access Portal</h1>
