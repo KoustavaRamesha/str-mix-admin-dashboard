@@ -123,11 +123,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <Button onClick={handleLogout} variant="outline" className="rounded-none uppercase font-bold text-[10px] tracking-widest px-8">
               Sign Out
             </Button>
-            <Button asChild className="rounded-none uppercase font-bold text-[10px] tracking-widest px-8 bg-primary text-primary-foreground">
-              <Link href="https://console.firebase.google.com/" target="_blank">
-                Open Firebase Console <ArrowRight className="ml-2 h-3 w-3" />
-              </Link>
-            </Button>
           </div>
         </div>
       </div>
