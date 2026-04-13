@@ -169,14 +169,38 @@ export default function BlogManagement() {
                   className="bg-background rounded-none border-muted h-9 text-xs"
                 />
               </div>
-              <Button 
-                className="w-full bg-primary text-primary-foreground font-bold uppercase rounded-none text-[10px] h-9"
-                onClick={handleGenerateDraft}
-                disabled={loadingAi}
-              >
-                {loadingAi ? <Loader2 className="h-3 w-3 animate-spin mr-2" /> : <Sparkles className="h-3 w-3 mr-2" />}
-                Draft Post
-              </Button>
+              <div className="ai-btn-wrapper w-full">
+                <button
+                  type="button"
+                  className="ai-btn w-full"
+                  onClick={handleGenerateDraft}
+                  disabled={loadingAi}
+                >
+                  {loadingAi ? (
+                    <Loader2 className="ai-btn-svg h-4 w-4 animate-spin" />
+                  ) : (
+                    <svg viewBox="0 0 24 24" className="ai-btn-svg" aria-hidden="true">
+                      <path d="M12 3l2.4 4.86L20 10.2l-4 3.9.94 5.47L12 17l-4.94 2.57L8 14.1l-4-3.9 5.6-2.34L12 3z" />
+                    </svg>
+                  )}
+                  <span className="ai-txt-wrapper">
+                    <span className="ai-txt-1" aria-hidden="true">
+                      {"DRAFT POST".split("").map((char, idx) => (
+                        <span key={idx} className="ai-btn-letter">
+                          {char === " " ? "\u00A0" : char}
+                        </span>
+                      ))}
+                    </span>
+                    <span className="ai-txt-2" aria-hidden="true">
+                      {"GENERATING".split("").map((char, idx) => (
+                        <span key={idx} className="ai-btn-letter">
+                          {char}
+                        </span>
+                      ))}
+                    </span>
+                  </span>
+                </button>
+              </div>
             </CardContent>
           </Card>
 
