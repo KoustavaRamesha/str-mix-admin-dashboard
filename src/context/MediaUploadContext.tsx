@@ -15,8 +15,8 @@ import {
   getDownloadURL,
   UploadTask as FirebaseUploadTask,
 } from 'firebase/storage';
-import { collection } from 'firebase/firestore';
-import { useFirestore, useStorage, useAuth, addDocumentNonBlocking } from '@/firebase';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { useFirestore, useStorage, useAuth } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 
 // ─── Constants ───────────────────────────────────────────────────────────────
@@ -113,6 +113,7 @@ export function MediaUploadProvider({ children }: { children: React.ReactNode })
   const activeTasks = useRef<Record<string, FirebaseUploadTask>>({});
   const lastUpdateRef = useRef<Record<string, number>>({});
   const pendingQueue = useRef<Array<{ file: File; id: string }>>([]);
+  const attemptsRef = useRef<Record<string, number>>({});
   const activeCount = useRef(0);
 
   const db = useFirestore();
@@ -144,6 +145,7 @@ export function MediaUploadProvider({ children }: { children: React.ReactNode })
         dispatch({ type: 'RETRY', id });
       } else {
         dispatch({ type: 'START', id });
+        attemptsRef.current[id] = 0;
       }
 
       task.on(
@@ -159,15 +161,17 @@ export function MediaUploadProvider({ children }: { children: React.ReactNode })
         (error) => {
           if (error.code === 'storage/canceled') {
             activeCount.current = Math.max(0, activeCount.current - 1);
+            delete attemptsRef.current[id];
             drainQueue();
             return;
           }
 
-          const currentAttempt = uploadQueue[id]?.attempt ?? 0;
+          const currentAttempt = attemptsRef.current[id] ?? 0;
           const isRetriable =
             error.code === 'storage/unknown' || error.code === 'storage/retry-limit-exceeded';
 
           if (isRetriable && currentAttempt < MAX_RETRY_ATTEMPTS) {
+            attemptsRef.current[id] = currentAttempt + 1;
             toast({
               title: 'Retrying Upload',
               description: `${file.name}: transient error, retrying (${currentAttempt + 1}/${MAX_RETRY_ATTEMPTS})…`,
@@ -185,6 +189,7 @@ export function MediaUploadProvider({ children }: { children: React.ReactNode })
           dispatch({ type: 'ERROR', id });
           delete activeTasks.current[id];
           delete lastUpdateRef.current[id];
+          delete attemptsRef.current[id];
           activeCount.current = Math.max(0, activeCount.current - 1);
           drainQueue();
 
@@ -214,15 +219,16 @@ export function MediaUploadProvider({ children }: { children: React.ReactNode })
               size: file.size,
               mimeType: file.type,
               storagePath: storageRef.fullPath,
-              createdAt: new Date().toISOString(),
+              createdAt: serverTimestamp(),
             };
 
-            addDocumentNonBlocking(collection(db, 'media_library'), assetData);
+            await addDoc(collection(db, 'media_library'), assetData);
 
             setTimeout(() => {
               dispatch({ type: 'REMOVE', id });
               delete activeTasks.current[id];
               delete lastUpdateRef.current[id];
+              delete attemptsRef.current[id];
             }, 800);
 
             toast({ title: 'Asset Registered', description: `${file.name} is now available in your library.` });
@@ -241,7 +247,7 @@ export function MediaUploadProvider({ children }: { children: React.ReactNode })
         },
       );
     },
-    [db, storage, toast, uploadQueue],
+    [db, storage, toast],
   );
 
   const drainQueue = useCallback(() => {
@@ -291,6 +297,7 @@ export function MediaUploadProvider({ children }: { children: React.ReactNode })
         activeTasks.current[id].cancel();
         delete activeTasks.current[id];
         delete lastUpdateRef.current[id];
+        delete attemptsRef.current[id];
       } else {
         pendingQueue.current = pendingQueue.current.filter((item) => item.id !== id);
       }
