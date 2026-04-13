@@ -6,11 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
-import { Progress } from "@/components/ui/progress"
 import { 
   Search, 
-  Filter, 
-  Upload, 
   Grid, 
   List, 
   Copy, 
@@ -19,8 +16,7 @@ import {
   FileText,
   Video,
   Loader2,
-  CheckCircle2,
-  X
+  Upload
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import Image from "next/image"
@@ -29,21 +25,21 @@ import {
   useStorage, 
   useCollection, 
   useMemoFirebase, 
-  addDocumentNonBlocking, 
   deleteDocumentNonBlocking 
 } from "@/firebase"
 import { collection, doc, query, orderBy } from "firebase/firestore"
-import { ref, uploadBytesResumable, getDownloadURL, deleteObject } from "firebase/storage"
+import { ref, deleteObject } from "firebase/storage"
+import { useMediaUpload } from "@/context/MediaUploadContext"
 
 export default function MediaLibrary() {
   const [layout, setLayout] = useState<'grid' | 'list'>('grid')
   const [searchTerm, setSearchTerm] = useState("")
-  const [uploadProgress, setUploadProgress] = useState<{ [key: string]: number }>({})
   const fileInputRef = useRef<HTMLInputElement>(null)
   const { toast } = useToast()
   
   const db = useFirestore()
   const storage = useStorage()
+  const { uploadFiles } = useMediaUpload()
 
   const mediaQuery = useMemoFirebase(() => {
     return query(collection(db, 'media_library'), orderBy('createdAt', 'desc'))
@@ -57,64 +53,18 @@ export default function MediaLibrary() {
   }
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files
-    if (!files) return
-
-    Array.from(files).forEach(file => {
-      // Create a unique storage reference
-      const storageRef = ref(storage, `media/${Date.now()}_${file.name}`)
-      const uploadTask = uploadBytesResumable(storageRef, file)
-
-      uploadTask.on('state_changed', 
-        (snapshot) => {
-          const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100
-          setUploadProgress(prev => ({ ...prev, [file.name]: progress }))
-        }, 
-        (error) => {
-          console.error("Upload error:", error)
-          toast({ variant: "destructive", title: "Upload Failed", description: error.message })
-          setUploadProgress(prev => {
-            const next = { ...prev }
-            delete next[file.name]
-            return next
-          })
-        }, 
-        async () => {
-          const downloadURL = await getDownloadURL(uploadTask.snapshot.ref)
-          
-          const assetData = {
-            name: file.name,
-            url: downloadURL,
-            type: file.type.startsWith('image/') ? 'image' : file.type.startsWith('video/') ? 'video' : 'doc',
-            size: file.size,
-            mimeType: file.type,
-            storagePath: storageRef.fullPath,
-            createdAt: new Date().toISOString()
-          }
-
-          addDocumentNonBlocking(collection(db, 'media_library'), assetData)
-          
-          setUploadProgress(prev => {
-            const next = { ...prev }
-            delete next[file.name]
-            return next
-          })
-          
-          toast({ title: "Asset Uploaded", description: `${file.name} is now available.` })
-        }
-      )
-    })
+    if (e.target.files) {
+      uploadFiles(e.target.files);
+      // Reset input
+      e.target.value = '';
+    }
   }
 
   const handleDelete = async (item: any) => {
     try {
-      // 1. Delete from Cloud Storage
       const storageRef = ref(storage, item.storagePath)
       await deleteObject(storageRef)
-      
-      // 2. Delete from Firestore metadata
       deleteDocumentNonBlocking(doc(db, 'media_library', item.id))
-      
       toast({ title: "Asset Deleted", description: "File and metadata removed." })
     } catch (error: any) {
       console.error("Delete error:", error)
@@ -150,26 +100,6 @@ export default function MediaLibrary() {
           </Button>
         </div>
       </div>
-
-      {/* Active Uploads Progress Area */}
-      {Object.keys(uploadProgress).length > 0 && (
-        <Card className="bg-primary/5 border-primary/20 border-2">
-          <CardContent className="p-4 space-y-4">
-            <h3 className="text-[10px] font-bold uppercase tracking-widest flex items-center gap-2">
-              <Loader2 className="h-3 w-3 animate-spin text-primary" /> Active Transfers
-            </h3>
-            {Object.entries(uploadProgress).map(([name, progress]) => (
-              <div key={name} className="space-y-1">
-                <div className="flex justify-between text-[8px] font-bold uppercase">
-                  <span className="truncate max-w-[200px]">{name}</span>
-                  <span>{Math.round(progress)}%</span>
-                </div>
-                <Progress value={progress} className="h-1 rounded-none bg-muted" />
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-      )}
 
       <Card className="bg-card border-2 border-muted overflow-hidden">
         <div className="p-4 border-b-2 border-muted flex flex-col md:flex-row gap-4 items-center justify-between">
@@ -228,7 +158,6 @@ export default function MediaLibrary() {
                     </div>
                   )}
                   
-                  {/* Hover Overlay Actions */}
                   <div className="absolute inset-0 bg-black/80 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-3 p-2">
                     <p className="text-[8px] font-bold uppercase text-white text-center truncate w-full mb-1">{item.name}</p>
                     <div className="flex gap-2">
@@ -237,7 +166,6 @@ export default function MediaLibrary() {
                         variant="ghost" 
                         className="h-8 w-8 text-white hover:bg-white/20"
                         onClick={() => handleCopyUrl(item.url)}
-                        title="Copy URL"
                       >
                         <Copy className="h-4 w-4" />
                       </Button>
@@ -246,7 +174,6 @@ export default function MediaLibrary() {
                         variant="ghost" 
                         className="h-8 w-8 text-red-500 hover:bg-red-500/20"
                         onClick={() => handleDelete(item)}
-                        title="Delete Asset"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>

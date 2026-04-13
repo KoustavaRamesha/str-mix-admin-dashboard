@@ -17,8 +17,7 @@ import {
   Users as UsersIcon,
   Loader2,
   ShieldAlert,
-  Database,
-  ArrowRight
+  Loader
 } from "lucide-react"
 import { 
   Sidebar, 
@@ -35,9 +34,11 @@ import {
 } from "@/components/ui/sidebar"
 import { Separator } from "@/components/ui/separator"
 import { Button } from "@/components/ui/button"
+import { Progress } from "@/components/ui/progress"
 import { useUser, useAuth, useFirestore, useDoc, useMemoFirebase } from "@/firebase"
 import { signOut } from "firebase/auth"
 import { doc } from "firebase/firestore"
+import { MediaUploadProvider, useMediaUpload } from "@/context/MediaUploadContext"
 
 const adminNav = [
   { name: "Overview", href: "/admin", icon: LayoutDashboard },
@@ -48,7 +49,36 @@ const adminNav = [
   { name: "Team Management", href: "/admin/users", icon: UsersIcon },
 ]
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
+function GlobalUploadIndicator() {
+  const { uploadQueue } = useMediaUpload();
+  const activeUploads = Object.values(uploadQueue);
+  
+  if (activeUploads.length === 0) return null;
+
+  return (
+    <div className="fixed bottom-6 right-6 z-50 w-72 bg-card border-2 border-primary shadow-2xl animate-in slide-in-from-bottom-4">
+      <div className="p-3 border-b bg-primary/5 flex items-center justify-between">
+        <h3 className="text-[10px] font-bold uppercase tracking-widest flex items-center gap-2">
+          <Loader className="h-3 w-3 animate-spin text-primary" /> Transmitting Assets
+        </h3>
+        <span className="text-[10px] font-bold text-primary">{activeUploads.length} Active</span>
+      </div>
+      <div className="p-3 space-y-3 max-h-48 overflow-y-auto">
+        {activeUploads.map((task) => (
+          <div key={task.name} className="space-y-1">
+            <div className="flex justify-between text-[8px] font-bold uppercase truncate">
+              <span className="truncate flex-1">{task.name}</span>
+              <span className="ml-2">{Math.round(task.progress)}%</span>
+            </div>
+            <Progress value={task.progress} className="h-1 rounded-none bg-muted" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function AdminLayoutContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const router = useRouter()
   const { user, isUserLoading } = useUser()
@@ -86,7 +116,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   if (!user) return null
 
-  // If user is logged in but has no admin record in Firestore
   if (!adminRole && !isAdminRoleLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background industrial-grid p-4 text-center">
@@ -161,6 +190,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </SidebarMenu>
         </SidebarContent>
         <SidebarFooter className="p-4 gap-4">
+          <GlobalUploadIndicator />
           <Separator className="bg-muted" />
           <SidebarMenu>
             <SidebarMenuItem>
@@ -208,4 +238,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       </SidebarInset>
     </SidebarProvider>
   )
+}
+
+export default function AdminLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <MediaUploadProvider>
+      <AdminLayoutContent>{children}</AdminLayoutContent>
+    </MediaUploadProvider>
+  );
 }
