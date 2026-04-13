@@ -1,8 +1,11 @@
+"use client"
+
 import Image from "next/image"
 import Link from "next/link"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
+import { ConsultationButton } from "@/components/ui/consultation-button"
 import { PlaceHolderImages } from "@/lib/placeholder-images"
 import { ArrowUpRight } from "lucide-react"
 
@@ -37,13 +40,8 @@ export default function Home() {
               <p className="text-lg md:text-2xl text-muted-foreground max-w-2xl font-medium leading-tight">
                 High-performance concrete solutions engineered for the most demanding structural environments.
               </p>
-              <div className="flex flex-wrap gap-0">
-                <Button size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-none px-10 h-16 font-bold uppercase transition-all text-md tracking-widest">
-                  Start Consultation
-                </Button>
-                <Button variant="outline" size="lg" className="border-2 border-muted border-l-0 text-white hover:bg-white/5 rounded-none px-10 h-16 font-bold uppercase text-md tracking-widest">
-                  View Specs
-                </Button>
+              <div className="flex flex-wrap gap-4">
+                <ConsultationButton onClick={() => window.location.href = '/contact'} />
               </div>
             </div>
           </div>

@@ -19,16 +19,16 @@ import {
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import Image from "next/image"
+import { ProgressLoader } from "@/components/ui/progress-loader"
 import { 
   useFirestore, 
-  useStorage, 
   useCollection, 
   useMemoFirebase, 
   deleteDocumentNonBlocking 
 } from "@/firebase"
 import { collection, doc, query, orderBy } from "firebase/firestore"
-import { ref, deleteObject } from "firebase/storage"
 import { useMediaUpload } from "@/context/MediaUploadContext"
+import { supabase } from "@/lib/supabase"
 
 export default function MediaLibrary() {
   const [layout, setLayout] = useState<'grid' | 'list'>('grid')
@@ -37,7 +37,6 @@ export default function MediaLibrary() {
   const { toast } = useToast()
   
   const db = useFirestore()
-  const storage = useStorage()
   const { uploadFiles } = useMediaUpload()
 
   const mediaQuery = useMemoFirebase(() => {
@@ -53,6 +52,10 @@ export default function MediaLibrary() {
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
+      toast({
+        title: "Files Selected",
+        description: `Selected ${e.target.files.length} file(s). Starting upload pipeline...`,
+      })
       uploadFiles(e.target.files);
       // Reset input to allow selecting the same file again if needed
       e.target.value = '';
@@ -61,9 +64,13 @@ export default function MediaLibrary() {
 
   const handleDelete = async (item: any) => {
     try {
-      // 1. Delete from Storage first
-      const storageRef = ref(storage, item.storagePath)
-      await deleteObject(storageRef)
+      // 1. Delete from Supabase Storage first
+      const { error: storageError } = await supabase.storage
+        .from(process.env.NEXT_PUBLIC_SUPABASE_STORAGE_BUCKET || 'media')
+        .remove([item.storagePath])
+      if (storageError) {
+        throw storageError
+      }
       
       // 2. Delete metadata from Firestore
       deleteDocumentNonBlocking(doc(db, 'media_library', item.id))
@@ -137,7 +144,7 @@ export default function MediaLibrary() {
         
         <CardContent className="p-6">
           {isLoading ? (
-            <div className="flex justify-center py-20"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div>
+            <div className="flex justify-center py-20"><ProgressLoader label="Loading media" /></div>
           ) : !filteredMedia || filteredMedia.length === 0 ? (
             <div className="py-20 text-center border-2 border-dashed border-muted">
               <ImageIcon className="h-12 w-12 text-muted/30 mx-auto mb-4" />

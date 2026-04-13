@@ -36,13 +36,6 @@ import Image from "next/image"
 import { useFirestore, useCollection, useMemoFirebase, useUser, setDocumentNonBlocking, deleteDocumentNonBlocking } from "@/firebase"
 import { collection, doc } from "firebase/firestore"
 
-const mockMedia = [
-  { id: 1, url: "https://picsum.photos/seed/solid1/400/300", name: "foundation_pour.jpg" },
-  { id: 2, url: "https://picsum.photos/seed/solid2/400/300", name: "site_visit.jpg" },
-  { id: 3, url: "https://picsum.photos/seed/solid3/400/300", name: "finished_driveway.jpg" },
-  { id: 4, url: "https://picsum.photos/seed/solid4/400/300", name: "concrete_texture.jpg" },
-]
-
 export default function BlogManagement() {
   const [view, setView] = useState<'list' | 'edit'>('list')
   const [topic, setTopic] = useState("")
@@ -57,6 +50,12 @@ export default function BlogManagement() {
   }, [db, user]);
   
   const { data: posts, isLoading: postsLoading } = useCollection(postsQuery);
+  const mediaQuery = useMemoFirebase(() => {
+    if (!user) return null;
+    return collection(db, 'media_library');
+  }, [db, user]);
+  const { data: mediaAssets, isLoading: mediaLoading } = useCollection(mediaQuery);
+  const imageAssets = mediaAssets?.filter((asset: any) => asset.type === 'image') ?? [];
 
   const handleGenerateDraft = async () => {
     if (!topic) return
@@ -370,20 +369,30 @@ export default function BlogManagement() {
                       <DialogHeader>
                         <DialogTitle className="uppercase tracking-widest text-sm">Media Selector</DialogTitle>
                       </DialogHeader>
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4">
-                        {mockMedia.map(media => (
-                          <div 
-                            key={media.id} 
-                            onClick={() => updateDraft('featuredImage', media.url)}
-                            className="relative aspect-square cursor-pointer border-2 border-muted hover:border-primary transition-all group overflow-hidden"
-                          >
-                            <Image src={media.url} alt={media.name} fill className="object-cover" />
-                            <div className="absolute inset-0 bg-primary/20 opacity-0 group-hover:opacity-100 flex items-center justify-center">
-                              <Plus className="h-6 w-6 text-white" />
+                      {mediaLoading ? (
+                        <div className="p-8 text-center">
+                          <Loader2 className="h-6 w-6 animate-spin mx-auto text-primary" />
+                        </div>
+                      ) : imageAssets.length === 0 ? (
+                        <div className="p-8 text-center text-muted-foreground text-[10px] font-bold uppercase tracking-widest">
+                          No uploaded images found in Media Registry
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4">
+                          {imageAssets.map((media: any) => (
+                            <div 
+                              key={media.id} 
+                              onClick={() => updateDraft('featuredImage', media.url)}
+                              className="relative aspect-square cursor-pointer border-2 border-muted hover:border-primary transition-all group overflow-hidden"
+                            >
+                              <Image src={media.url} alt={media.name} fill className="object-cover" />
+                              <div className="absolute inset-0 bg-primary/20 opacity-0 group-hover:opacity-100 flex items-center justify-center">
+                                <Plus className="h-6 w-6 text-white" />
+                              </div>
                             </div>
-                          </div>
-                        ))}
-                      </div>
+                          ))}
+                        </div>
+                      )}
                     </DialogContent>
                   </Dialog>
                 )}

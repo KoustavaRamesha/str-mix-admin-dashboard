@@ -3,9 +3,9 @@
 
 import * as React from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { usePathname, useRouter } from "next/navigation"
 import { 
-  Construction, 
   LayoutDashboard, 
   FileText, 
   Star, 
@@ -14,12 +14,13 @@ import {
   LogOut,
   ChevronRight,
   Image as ImageIcon,
+  BriefcaseBusiness,
   Users as UsersIcon,
-  Loader2,
   ShieldAlert,
   Loader,
   X
 } from "lucide-react"
+import { Loader as LoaderComponent } from "@/components/loader"
 import { 
   Sidebar, 
   SidebarContent, 
@@ -46,6 +47,7 @@ const adminNav = [
   { name: "Overview", href: "/admin", icon: LayoutDashboard },
   { name: "Blog Posts", href: "/admin/blog", icon: FileText },
   { name: "Media Library", href: "/admin/media", icon: ImageIcon },
+  { name: "Projects", href: "/admin/projects", icon: BriefcaseBusiness },
   { name: "Reviews", href: "/admin/reviews", icon: Star },
   { name: "Support Tickets", href: "/admin/tickets", icon: LifeBuoy },
   { name: "Team Management", href: "/admin/users", icon: UsersIcon },
@@ -101,13 +103,22 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
   }, [db, user]);
 
   const { data: adminRole, isLoading: isAdminRoleLoading } = useDoc(adminRoleRef);
+  const adminRoleName = adminRole?.role;
+  const hasAdminAccess = adminRoleName === 'admin' || adminRoleName === 'super_admin';
 
-  // Notification counts
-  const ticketsQuery = useMemoFirebase(() => collection(db, 'support_tickets'), [db]);
+  // Notification counts should only be queried for verified admins.
+  const canQueryAdminCollections = Boolean(user && hasAdminAccess && !isAdminRoleLoading);
+  const ticketsQuery = useMemoFirebase(() => {
+    if (!canQueryAdminCollections) return null;
+    return collection(db, 'support_tickets');
+  }, [db, canQueryAdminCollections]);
   const { data: tickets } = useCollection(ticketsQuery);
   const unresolvedTicketsCount = tickets?.filter(t => t.status !== 'resolved').length || 0;
 
-  const reviewsQuery = useMemoFirebase(() => collection(db, 'admin_reviews'), [db]);
+  const reviewsQuery = useMemoFirebase(() => {
+    if (!canQueryAdminCollections) return null;
+    return collection(db, 'admin_reviews');
+  }, [db, canQueryAdminCollections]);
   const { data: reviews } = useCollection(reviewsQuery);
   const pendingReviewsCount = reviews?.length || 0;
 
@@ -125,17 +136,14 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
   if (isUserLoading || (user && isAdminRoleLoading)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background industrial-grid">
-        <div className="flex flex-col items-center gap-4">
-          <Loader2 className="h-12 w-12 animate-spin text-primary" />
-          <p className="text-xs font-bold uppercase tracking-[0.3em] text-muted-foreground">Verifying Authorization...</p>
-        </div>
+        <LoaderComponent label="Verifying Authorization..." />
       </div>
     )
   }
 
   if (!user) return null
 
-  if (!adminRole && !isAdminRoleLoading) {
+  if (!hasAdminAccess && !isAdminRoleLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background industrial-grid p-4 text-center">
         <div className="max-w-xl w-full space-y-8 animate-in fade-in zoom-in duration-500">
@@ -148,7 +156,7 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
           <div className="space-y-2">
             <h1 className="text-4xl font-headline font-bold uppercase tracking-tighter">Access <span className="text-destructive">Restricted</span></h1>
             <p className="text-muted-foreground text-sm font-bold uppercase tracking-widest max-w-md mx-auto leading-relaxed">
-              Your identity is verified, but your account is not registered in the administrative registry.
+              Your identity is verified, but your account does not have an administrative role.
             </p>
           </div>
 
@@ -182,7 +190,14 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
       <Sidebar collapsible="icon" className="bg-background border-r-2 border-muted shadow-xl">
         <SidebarHeader className="p-4">
           <Link href="/" className="flex items-center gap-2 overflow-hidden">
-            <Construction className="h-6 w-6 text-primary shrink-0" />
+            <Image
+              src="/logo.png"
+              alt="STR mix Logo"
+              width={56}
+              height={56}
+              className="h-14 w-14 shrink-0"
+              priority
+            />
             <span className="font-headline text-lg font-bold tracking-tighter uppercase whitespace-nowrap group-data-[collapsible=icon]:hidden">
               STR <span className="text-primary">Admin</span>
             </span>

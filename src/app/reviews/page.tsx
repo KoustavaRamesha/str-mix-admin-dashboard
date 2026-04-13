@@ -9,7 +9,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
-import { Star, MessageSquare, Quote, Loader2, CheckCircle2 } from "lucide-react"
+import { Star, MessageSquare, Quote, CheckCircle2 } from "lucide-react"
+import { ProgressLoader } from "@/components/ui/progress-loader"
 import { useToast } from "@/hooks/use-toast"
 import { useFirestore, useCollection, useMemoFirebase, addDocumentNonBlocking } from "@/firebase"
 import { collection, query, orderBy } from "firebase/firestore"
@@ -148,7 +149,7 @@ export default function ReviewsPage() {
 
               <div className="lg:col-span-2 space-y-8">
                 {reviewsLoading ? (
-                  <div className="flex justify-center py-12"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div>
+                  <div className="flex justify-center py-12"><ProgressLoader label="Loading reviews" /></div>
                 ) : reviews?.length === 0 ? (
                   <div className="bg-card border-2 border-muted p-12 text-center uppercase font-bold tracking-widest text-muted-foreground">
                     No public client intel registered at this time.

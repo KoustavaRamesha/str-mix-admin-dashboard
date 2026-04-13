@@ -5,7 +5,8 @@ import Image from "next/image"
 import Link from "next/link"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
-import { Calendar, User, ChevronLeft, Share2, Tag, Loader2 } from "lucide-react"
+import { Calendar, User, ChevronLeft, Share2, Tag } from "lucide-react"
+import { ProgressLoader } from "@/components/ui/progress-loader"
 import { Button } from "@/components/ui/button"
 import { useFirestore, useCollection, useMemoFirebase } from "@/firebase"
 import { collection, query, where, limit } from "firebase/firestore"
@@ -31,7 +32,7 @@ export default function BlogPostPage({ params }: { params: Promise<{ slug: strin
       <div className="min-h-screen flex flex-col">
         <Navbar />
         <main className="flex-grow flex items-center justify-center">
-          <Loader2 className="h-12 w-12 animate-spin text-primary" />
+          <ProgressLoader label="Loading post" />
         </main>
         <Footer />
       </div>

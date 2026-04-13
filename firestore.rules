@@ -13,8 +13,27 @@ service cloud.firestore {
       return request.auth != null;
     }
 
+    function adminRoleData() {
+      return get(/databases/$(database)/documents/roles_admin/$(request.auth.uid)).data;
+    }
+
+    function hasAdminRole() {
+      return isSignedIn()
+        && exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid))
+        && (
+          adminRoleData().role == 'admin'
+          || adminRoleData().role == 'super_admin'
+        );
+    }
+
+    function isSuperAdmin() {
+      return isSignedIn()
+        && exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid))
+        && adminRoleData().role == 'super_admin';
+    }
+
     function isAdmin() {
-      return isSignedIn() && exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid));
+      return hasAdminRole();
     }
 
     function isOwner(userId) {
@@ -25,7 +44,7 @@ service cloud.firestore {
 
     match /settings/global {
       allow read: if true;
-      allow write: if isAdmin();
+      allow write: if isSuperAdmin();
     }
 
     match /users/{userId} {
@@ -43,7 +62,7 @@ service cloud.firestore {
 
     match /media_library/{assetId} {
       allow read: if true;
-      allow write: if isAdmin();
+      allow write: if isSuperAdmin();
     }
 
     match /admin_posts/{postId} {
@@ -74,6 +93,11 @@ service cloud.firestore {
     }
 
     match /published_reviews/{reviewId} {
+      allow get, list: if true;
+      allow write: if isAdmin();
+    }
+
+    match /projects/{projectId} {
       allow get, list: if true;
       allow write: if isAdmin();
     }

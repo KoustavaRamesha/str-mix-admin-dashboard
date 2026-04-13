@@ -2,7 +2,9 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { Construction, Loader2, Lock, AlertCircle } from "lucide-react"
+import Image from "next/image"
+import { Lock, AlertCircle } from "lucide-react"
+import { Loader } from "@/components/loader"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -77,7 +79,14 @@ export default function LoginPage() {
       <div className="w-full max-w-md space-y-8">
         <div className="text-center space-y-2">
           <Link href="/" className="inline-flex items-center gap-2 mb-4">
-            <Construction className="h-10 w-10 text-primary" />
+            <Image
+              src="/logo.png"
+              alt="STR mix Logo"
+              width={56}
+              height={56}
+              className="h-14 w-14"
+              priority
+            />
             <span className="font-headline text-3xl font-bold tracking-tighter uppercase">
               STR <span className="text-primary">mix</span>
             </span>
@@ -112,7 +121,7 @@ export default function LoginPage() {
                 disabled={googleLoading || loading}
               >
                 {googleLoading ? (
-                  <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                  <Loader className="h-0.5 w-0.5" />
                 ) : (
                   <svg className="h-4 w-4" viewBox="0 0 24 24">
                     <path
@@ -167,7 +176,8 @@ export default function LoginPage() {
                   />
                 </div>
                 <Button type="submit" className="w-full bg-primary text-primary-foreground font-bold uppercase rounded-none h-12 mt-4 yellow-glow" disabled={loading || googleLoading}>
-                  {loading ? <Loader2 className="h-5 w-5 animate-spin mr-2" /> : <Lock className="h-4 w-4 mr-2" />}
+                  {loading && <svg className="h-5 w-5 animate-spin mr-2 inline-block"><use href="#loader" /></svg>}
+                  <Lock className="h-4 w-4 mr-2" />
                   {loading ? "Verifying..." : "Verify Terminal Identity"}
                 </Button>
               </form>

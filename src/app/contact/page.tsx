@@ -72,7 +72,14 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <h4 className="font-bold uppercase text-sm mb-1">Office Location</h4>
-                    <p className="text-muted-foreground text-sm">123 Industrial Way, Steel City, SC 45678</p>
+                    <a
+                      href="https://www.google.com/maps?q=12.842819,77.558976&entry=gps&g_ep=CAESBzI1LjEzLjYYACCIJyp-LDk0MjU5NTUxLDk0MjIzMjk5LDk0MjE2NDEzLDk0MjEyNDk2LDk0MjEyNjY2LDk0MjA3Mzk0LDk0MjA3NTA2LDk0MjA4NTA2LDk0MjE3NTIzLDk0MjE4NjUzLDk0MjI5ODM5LDQ3MDg0MzkzLDk0MjEzMjAwLDk0MjU4MzE5QgJJTg%3D%3D&skid=12b7e6c7-a79f-4284-9b93-26f644c62398&shorturl=1"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-muted-foreground text-sm hover:text-primary transition-colors"
+                    >
+                      Bengaluru, Karnataka - 12.842819, 77.558976
+                    </a>
                   </div>
                 </div>
                 <div className="flex items-start gap-4">

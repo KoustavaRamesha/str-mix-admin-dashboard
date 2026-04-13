@@ -3,8 +3,9 @@
 
 import * as React from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { usePathname } from "next/navigation"
-import { Construction, Menu, X, LogIn } from "lucide-react"
+import { Menu, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
@@ -35,9 +36,14 @@ export function Navbar() {
     <nav className="fixed top-0 z-50 w-full border-b-2 border-muted bg-background/80 backdrop-blur-xl transition-all duration-300">
       <div className="container mx-auto px-4 h-20 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-3 group">
-          <div className="h-8 w-8 text-primary transition-transform group-hover:rotate-12">
-            <Construction className="h-full w-full" />
-          </div>
+          <Image
+            src="/logo.png"
+            alt="STR mix Logo"
+            width={56}
+            height={56}
+            className="h-14 w-14 transition-transform group-hover:scale-110"
+            priority
+          />
           <span className="font-headline text-2xl md:text-3xl font-bold tracking-tighter uppercase leading-none">
             STR <span className="text-primary">mix</span>
           </span>
@@ -58,11 +64,16 @@ export function Navbar() {
               {item.name}
             </Link>
           ))}
-          <Button asChild variant="outline" size="sm" className="border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground rounded-none h-10 px-6 font-bold uppercase text-[10px] tracking-widest">
-            <Link href="/login" prefetch={true} className="flex items-center gap-2">
-              <LogIn className="h-4 w-4" /> Portal
-            </Link>
-          </Button>
+          <Link href="/login" prefetch={true} className="animated-button" aria-label="Portal">
+            <svg viewBox="0 0 24 24" className="arr-2" aria-hidden="true">
+              <path d="M5 12h12m0 0-5-5m5 5-5 5" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            <span className="text">Portal</span>
+            <span className="circle" />
+            <svg viewBox="0 0 24 24" className="arr-1" aria-hidden="true">
+              <path d="M5 12h12m0 0-5-5m5 5-5 5" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </Link>
         </div>
 
         {/* Mobile Toggle */}

@@ -1,5 +1,6 @@
 import Link from "next/link"
-import { Construction, Mail, Phone, MapPin, Facebook, Twitter, Linkedin, Instagram } from "lucide-react"
+import Image from "next/image"
+import { Facebook, Twitter, Linkedin, Instagram } from "lucide-react"
 
 export function Footer() {
   return (
@@ -8,7 +9,13 @@ export function Footer() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 mb-24">
           <div className="lg:col-span-5 space-y-8">
             <Link href="/" className="flex items-center gap-4 group">
-              <Construction className="h-10 w-10 text-primary" />
+              <Image
+                src="/logo.png"
+                alt="STR mix logo"
+                width={64}
+                height={64}
+                className="h-14 w-14 transition-transform group-hover:scale-110"
+              />
               <span className="font-headline text-4xl font-bold tracking-tighter uppercase">
                 STR <span className="text-primary">mix</span>
               </span>
@@ -16,13 +23,32 @@ export function Footer() {
             <p className="text-muted-foreground text-xl leading-relaxed max-w-md">
               Industrial grade excellence in concrete construction and structural engineering. Built for the next century.
             </p>
-            <div className="flex gap-6">
-              {[Facebook, Twitter, Linkedin, Instagram].map((Icon, i) => (
-                <Link key={i} href="#" className="h-12 w-12 border-2 border-muted flex items-center justify-center text-muted-foreground hover:text-primary hover:border-primary transition-all">
-                  <Icon className="h-5 w-5" />
+            <ul className="social-wrapper">
+              <li className="social-icon facebook">
+                <span className="tooltip">Facebook</span>
+                <Link href="#" aria-label="Facebook">
+                  <Facebook className="h-5 w-5" />
                 </Link>
-              ))}
-            </div>
+              </li>
+              <li className="social-icon twitter">
+                <span className="tooltip">Twitter</span>
+                <Link href="#" aria-label="Twitter">
+                  <Twitter className="h-5 w-5" />
+                </Link>
+              </li>
+              <li className="social-icon instagram">
+                <span className="tooltip">Instagram</span>
+                <Link href="https://www.instagram.com/strmix_9/" aria-label="Instagram" target="_blank" rel="noopener noreferrer">
+                  <Instagram className="h-5 w-5" />
+                </Link>
+              </li>
+              <li className="social-icon linkedin">
+                <span className="tooltip">LinkedIn</span>
+                <Link href="#" aria-label="LinkedIn">
+                  <Linkedin className="h-5 w-5" />
+                </Link>
+              </li>
+            </ul>
           </div>
 
           <div className="lg:col-span-2 space-y-6">
@@ -40,7 +66,14 @@ export function Footer() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="space-y-2">
                 <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Location</p>
-                <p className="text-lg font-bold uppercase leading-tight">123 Industrial Way,<br />Steel City, SC 45678</p>
+                <Link
+                  href="https://www.google.com/maps?q=12.842819,77.558976&entry=gps&g_ep=CAESBzI1LjEzLjYYACCIJyp-LDk0MjU5NTUxLDk0MjIzMjk5LDk0MjE2NDEzLDk0MjEyNDk2LDk0MjEyNjY2LDk0MjA3Mzk0LDk0MjA3NTA2LDk0MjA4NTA2LDk0MjE3NTIzLDk0MjE4NjUzLDk0MjI5ODM5LDQ3MDg0MzkzLDk0MjEzMjAwLDk0MjU4MzE5QgJJTg%3D%3D&skid=12b7e6c7-a79f-4284-9b93-26f644c62398&shorturl=1"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-lg font-bold uppercase leading-tight hover:text-primary transition-colors"
+                >
+                  Bengaluru, Karnataka<br />12.842819, 77.558976
+                </Link>
               </div>
               <div className="space-y-2">
                 <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Contact</p>

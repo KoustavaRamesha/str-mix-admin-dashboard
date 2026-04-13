@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Switch } from "@/components/ui/switch"
+import { ToggleSwitch } from "@/components/toggle-switch"
 import { Separator } from "@/components/ui/separator"
 import { Badge } from "@/components/ui/badge"
 import { 
@@ -14,9 +14,10 @@ import {
   Mail, 
   Save, 
   Database,
-  Loader2,
+  Loader,
   Users
 } from "lucide-react"
+import { Loader as LoaderComponent } from "@/components/loader"
 import { useToast } from "@/hooks/use-toast"
 import { doc } from 'firebase/firestore'
 import { useFirestore, useDoc, useMemoFirebase, setDocumentNonBlocking } from '@/firebase'
@@ -70,8 +71,7 @@ export default function SystemSettings() {
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center h-64 gap-4">
-        <Loader2 className="h-12 w-12 animate-spin text-primary" />
-        <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Accessing Global Registry...</p>
+        <LoaderComponent label="Accessing Global Registry..." size={0.8} />
       </div>
     )
   }
@@ -168,9 +168,10 @@ export default function SystemSettings() {
                   <Label className="text-[10px] font-bold uppercase tracking-widest">Maintenance Mode</Label>
                   <p className="text-[8px] text-muted-foreground uppercase font-bold">Public site offline</p>
                 </div>
-                <Switch 
+                <ToggleSwitch 
                   checked={localSettings.maintenanceMode} 
-                  onCheckedChange={(checked) => setLocalSettings(prev => ({ ...prev, maintenanceMode: checked }))} 
+                  onChange={(checked) => setLocalSettings(prev => ({ ...prev, maintenanceMode: checked }))}
+                  id="maintenanceMode"
                 />
               </div>
               <Separator className="bg-muted" />
@@ -179,9 +180,10 @@ export default function SystemSettings() {
                   <Label className="text-[10px] font-bold uppercase tracking-widest">Auto-Mod Reviews</Label>
                   <p className="text-[8px] text-muted-foreground uppercase font-bold">Skip manual review</p>
                 </div>
-                <Switch 
+                <ToggleSwitch 
                   checked={localSettings.autoModReviews} 
-                  onCheckedChange={(checked) => setLocalSettings(prev => ({ ...prev, autoModReviews: checked }))}
+                  onChange={(checked) => setLocalSettings(prev => ({ ...prev, autoModReviews: checked }))}
+                  id="autoModReviews"
                 />
               </div>
               <div className="flex items-center justify-between">
@@ -189,9 +191,10 @@ export default function SystemSettings() {
                   <Label className="text-[10px] font-bold uppercase tracking-widest">Mobile Push</Label>
                   <p className="text-[8px] text-muted-foreground uppercase font-bold">Admin alerts for tickets</p>
                 </div>
-                <Switch 
+                <ToggleSwitch 
                   checked={localSettings.mobilePush} 
-                  onCheckedChange={(checked) => setLocalSettings(prev => ({ ...prev, mobilePush: checked }))}
+                  onChange={(checked) => setLocalSettings(prev => ({ ...prev, mobilePush: checked }))}
+                  id="mobilePush"
                 />
               </div>
             </CardContent>

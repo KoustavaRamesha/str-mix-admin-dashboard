@@ -3,6 +3,7 @@
 
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Loader } from "@/components/loader"
 import { 
   Users, 
   FileText, 
@@ -15,7 +16,7 @@ import {
   ArrowRight,
   CheckCircle2,
   AlertTriangle,
-  Loader2
+  Loader2,
 } from "lucide-react"
 import { 
   BarChart, 
@@ -28,6 +29,7 @@ import {
   Cell 
 } from 'recharts'
 import { Button } from "@/components/ui/button"
+import { GradientButton } from "@/components/ui/gradient-button"
 import Link from "next/link"
 import { useFirestore, useCollection, useMemoFirebase, useUser, useDoc } from "@/firebase"
 import { collection, query, orderBy, limit, doc } from "firebase/firestore"
@@ -91,9 +93,12 @@ export default function AdminDashboard() {
           <h1 className="text-4xl font-headline font-bold uppercase tracking-tighter">Command <span className="text-primary">Center</span></h1>
           <p className="text-muted-foreground text-sm uppercase tracking-widest font-bold">Industrial Site Intelligence • v1.4.2</p>
         </div>
-        <div className="text-right">
-          <p className="text-[10px] font-bold uppercase text-muted-foreground">Live Telemetry</p>
-          <p className="text-xs font-mono">{lastRefresh || "--:--:--"}</p>
+        <div className="flex flex-col items-end gap-3">
+          <GradientButton onClick={() => window.location.href = '/admin/blog'}>Create Content</GradientButton>
+          <div className="text-right">
+            <p className="text-[10px] font-bold uppercase text-muted-foreground">Live Telemetry</p>
+            <p className="text-xs font-mono">{lastRefresh || "--:--:--"}</p>
+          </div>
         </div>
       </div>
 
