@@ -1,8 +1,7 @@
-
-"use client"
+'use client';
 
 import { useState, useRef } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
@@ -53,22 +52,26 @@ export default function MediaLibrary() {
   }
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
+    if (e.target.files && e.target.files.length > 0) {
       uploadFiles(e.target.files);
-      // Reset input
+      // Reset input to allow selecting the same file again if needed
       e.target.value = '';
     }
   }
 
   const handleDelete = async (item: any) => {
     try {
+      // 1. Delete from Storage first
       const storageRef = ref(storage, item.storagePath)
       await deleteObject(storageRef)
+      
+      // 2. Delete metadata from Firestore
       deleteDocumentNonBlocking(doc(db, 'media_library', item.id))
+      
       toast({ title: "Asset Deleted", description: "File and metadata removed." })
     } catch (error: any) {
       console.error("Delete error:", error)
-      toast({ variant: "destructive", title: "Delete Failed", description: "Could not remove the file." })
+      toast({ variant: "destructive", title: "Delete Failed", description: error.message || "Could not remove the file." })
     }
   }
 
