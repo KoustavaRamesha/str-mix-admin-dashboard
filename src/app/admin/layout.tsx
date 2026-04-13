@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -30,14 +31,15 @@ import {
   SidebarProvider,
   SidebarRail,
   SidebarTrigger,
-  SidebarInset
+  SidebarInset,
+  SidebarMenuBadge
 } from "@/components/ui/sidebar"
 import { Separator } from "@/components/ui/separator"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
-import { useUser, useAuth, useFirestore, useDoc, useMemoFirebase } from "@/firebase"
+import { useUser, useAuth, useFirestore, useDoc, useMemoFirebase, useCollection } from "@/firebase"
 import { signOut } from "firebase/auth"
-import { doc } from "firebase/firestore"
+import { doc, collection } from "firebase/firestore"
 import { MediaUploadProvider, useMediaUpload } from "@/context/MediaUploadContext"
 
 const adminNav = [
@@ -99,6 +101,15 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
   }, [db, user]);
 
   const { data: adminRole, isLoading: isAdminRoleLoading } = useDoc(adminRoleRef);
+
+  // Notification counts
+  const ticketsQuery = useMemoFirebase(() => collection(db, 'support_tickets'), [db]);
+  const { data: tickets } = useCollection(ticketsQuery);
+  const unresolvedTicketsCount = tickets?.filter(t => t.status !== 'resolved').length || 0;
+
+  const reviewsQuery = useMemoFirebase(() => collection(db, 'admin_reviews'), [db]);
+  const { data: reviews } = useCollection(reviewsQuery);
+  const pendingReviewsCount = reviews?.length || 0;
 
   React.useEffect(() => {
     if (!isUserLoading && !user) {
@@ -185,7 +196,7 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
                   asChild 
                   isActive={pathname === item.href}
                   tooltip={item.name}
-                  className="hover:bg-primary/10 data-[active=true]:bg-primary data-[active=true]:text-primary-foreground"
+                  className="hover:bg-primary/10 data-[active=true]:bg-primary data-[active=true]:text-primary-foreground relative"
                 >
                   <Link href={item.href}>
                     <item.icon className="h-4 w-4" />
@@ -193,6 +204,16 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
                     {pathname === item.href && <ChevronRight className="ml-auto h-4 w-4" />}
                   </Link>
                 </SidebarMenuButton>
+                {item.name === "Support Tickets" && unresolvedTicketsCount > 0 && (
+                  <SidebarMenuBadge className="bg-primary text-primary-foreground font-bold rounded-none text-[9px] h-4 min-w-4 px-1 flex items-center justify-center">
+                    {unresolvedTicketsCount}
+                  </SidebarMenuBadge>
+                )}
+                {item.name === "Reviews" && pendingReviewsCount > 0 && (
+                  <SidebarMenuBadge className="bg-yellow-500 text-black font-bold rounded-none text-[9px] h-4 min-w-4 px-1 flex items-center justify-center">
+                    {pendingReviewsCount}
+                  </SidebarMenuBadge>
+                )}
               </SidebarMenuItem>
             ))}
           </SidebarMenu>
