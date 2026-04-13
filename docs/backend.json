@@ -5,24 +5,20 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "User",
       "type": "object",
-      "description": "Represents a user of the STR mix Digital platform, including authors of blog posts and administrators. Does not store authentication credentials.",
+      "description": "Represents a user of the STR mix Digital platform, including authors of blog posts and administrators.",
       "properties": {
         "id": {
-          "type": "string",
-          "description": "Unique identifier for the User entity."
+          "type": "string"
         },
         "email": {
           "type": "string",
-          "description": "The user's email address, used for communication and identification.",
           "format": "email"
         },
         "role": {
-          "type": "string",
-          "description": "The role of the user, defining their access permissions within the system."
+          "type": "string"
         },
         "createdAt": {
           "type": "string",
-          "description": "Timestamp when the user account was created.",
           "format": "date-time"
         }
       },
@@ -39,8 +35,7 @@
       "description": "Global configuration settings for the entire platform.",
       "properties": {
         "maintenanceMode": {
-          "type": "boolean",
-          "description": "When true, public routes are blocked by a maintenance screen."
+          "type": "boolean"
         },
         "siteName": {
           "type": "string"
@@ -50,265 +45,102 @@
           "format": "email"
         },
         "visitorCount": {
-          "type": "number",
-          "description": "Total number of site visits recorded."
+          "type": "number"
         }
       }
     },
+    "MediaAsset": {
+      "title": "MediaAsset",
+      "type": "object",
+      "description": "Represents an uploaded file in the media library.",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "url": { "type": "string" },
+        "type": { "type": "string", "enum": ["image", "video", "doc"] },
+        "size": { "type": "number" },
+        "mimeType": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      }
+    },
     "Category": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Category",
       "type": "object",
-      "description": "Represents a category for organizing blog posts.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the Category entity."
-        },
-        "name": {
-          "type": "string",
-          "description": "The human-readable name of the category (e.g., 'Industry News')."
-        },
-        "slug": {
-          "type": "string",
-          "description": "A URL-friendly, unique identifier for the category, used for SEO and routing."
-        }
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "slug": { "type": "string" }
       },
-      "required": [
-        "id",
-        "name",
-        "slug"
-      ]
+      "required": ["id", "name", "slug"]
     },
     "Tag": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Tag",
       "type": "object",
-      "description": "Represents a tag used to associate with blog posts for easier discovery and categorization.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the Tag entity."
-        },
-        "name": {
-          "type": "string",
-          "description": "The human-readable name of the tag (e.g., 'Construction', 'Concrete')."
-        },
-        "slug": {
-          "type": "string",
-          "description": "A URL-friendly, unique identifier for the tag, used for SEO and routing."
-        }
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "slug": { "type": "string" }
       },
-      "required": [
-        "id",
-        "name",
-        "slug"
-      ]
+      "required": ["id", "name", "slug"]
     },
     "Post": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Post",
       "type": "object",
-      "description": "Represents a blog post or article published on the STR mix Digital platform.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the Post entity."
-        },
-        "title": {
-          "type": "string",
-          "description": "The title of the blog post."
-        },
-        "slug": {
-          "type": "string",
-          "description": "A unique, URL-friendly identifier for the post, crucial for SEO and permalinks."
-        },
-        "bodyHtml": {
-          "type": "string",
-          "description": "The full content of the blog post, stored as HTML from a rich text editor."
-        },
-        "authorId": {
-          "type": "string",
-          "description": "Reference to the User who authored this post. (Relationship: User 1:N Post)"
-        },
-        "categoryId": {
-          "type": "string",
-          "description": "Reference to the Category this post belongs to. (Relationship: Category 1:N Post)"
-        },
-        "tagIds": {
-          "type": "array",
-          "description": "References to Tags associated with this post. (Relationship: Tag N:N Post)",
-          "items": {
-            "type": "string"
-          }
-        },
-        "publishedAt": {
-          "type": "string",
-          "description": "The date and time when the blog post was officially published and made public.",
-          "format": "date-time"
-        },
-        "metaTitle": {
-          "type": "string",
-          "description": "SEO meta title for the blog post."
-        },
-        "metaDescription": {
-          "type": "string",
-          "description": "SEO meta description for the blog post."
-        },
-        "createdAt": {
-          "type": "string",
-          "description": "Timestamp when the post was initially created in the system.",
-          "format": "date-time"
-        },
-        "updatedAt": {
-          "type": "string",
-          "description": "Timestamp when the post was last updated.",
-          "format": "date-time"
-        }
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "slug": { "type": "string" },
+        "bodyHtml": { "type": "string" },
+        "authorId": { "type": "string" },
+        "categoryId": { "type": "string" },
+        "tagIds": { "type": "array", "items": { "type": "string" } },
+        "publishedAt": { "type": "string", "format": "date-time" },
+        "metaTitle": { "type": "string" },
+        "metaDescription": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
       },
-      "required": [
-        "id",
-        "title",
-        "slug",
-        "bodyHtml",
-        "authorId",
-        "categoryId",
-        "publishedAt",
-        "metaTitle",
-        "metaDescription",
-        "createdAt",
-        "updatedAt"
-      ]
+      "required": ["id", "title", "slug", "bodyHtml", "authorId", "categoryId", "publishedAt", "metaTitle", "metaDescription", "createdAt", "updatedAt"]
     },
     "Review": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Review",
       "type": "object",
-      "description": "Represents a customer review submitted through the website.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the Review entity."
-        },
-        "authorName": {
-          "type": "string",
-          "description": "The name of the person who submitted the review."
-        },
-        "authorEmail": {
-          "type": "string",
-          "description": "The email address of the review author, primarily for moderation. Not publicly displayed.",
-          "format": "email"
-        },
-        "rating": {
-          "type": "number",
-          "description": "The numerical rating given by the author (e.g., 1 to 5 stars)."
-        },
-        "body": {
-          "type": "string",
-          "description": "The text content of the review."
-        },
-        "status": {
-          "type": "string",
-          "description": "The moderation status of the review."
-        },
-        "createdAt": {
-          "type": "string",
-          "description": "Timestamp when the review was submitted.",
-          "format": "date-time"
-        }
+        "id": { "type": "string" },
+        "authorName": { "type": "string" },
+        "authorEmail": { "type": "string", "format": "email" },
+        "rating": { "type": "number" },
+        "body": { "type": "string" },
+        "status": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
       },
-      "required": [
-        "id",
-        "authorName",
-        "authorEmail",
-        "rating",
-        "body",
-        "status",
-        "createdAt"
-      ]
+      "required": ["id", "authorName", "authorEmail", "rating", "body", "status", "createdAt"]
     },
     "SupportTicket": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "SupportTicket",
       "type": "object",
-      "description": "Represents a support ticket or contact form submission from a user.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the SupportTicket entity."
-        },
-        "name": {
-          "type": "string",
-          "description": "The name of the person who submitted the ticket."
-        },
-        "email": {
-          "type": "string",
-          "description": "The email address of the ticket submitter for communication.",
-          "format": "email"
-        },
-        "subject": {
-          "type": "string",
-          "description": "The subject line of the support ticket."
-        },
-        "body": {
-          "type": "string",
-          "description": "The detailed message or query of the support ticket."
-        },
-        "status": {
-          "type": "string",
-          "description": "The current status of the support ticket."
-        },
-        "createdAt": {
-          "type": "string",
-          "description": "Timestamp when the support ticket was created.",
-          "format": "date-time"
-        }
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "subject": { "type": "string" },
+        "body": { "type": "string" },
+        "status": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
       },
-      "required": [
-        "id",
-        "name",
-        "email",
-        "subject",
-        "body",
-        "status",
-        "createdAt"
-      ]
+      "required": ["id", "name", "email", "subject", "body", "status", "createdAt"]
     },
     "TicketReply": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "TicketReply",
       "type": "object",
-      "description": "Represents a reply within a support ticket thread.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the TicketReply entity."
-        },
-        "ticketId": {
-          "type": "string",
-          "description": "Reference to the SupportTicket this reply belongs to. (Relationship: SupportTicket 1:N TicketReply)"
-        },
-        "body": {
-          "type": "string",
-          "description": "The content of the reply message."
-        },
-        "authorId": {
-          "type": "string",
-          "description": "Reference to the User who authored this reply (can be an admin or the original submitter). (Relationship: User 1:N TicketReply)"
-        },
-        "createdAt": {
-          "type": "string",
-          "description": "Timestamp when the reply was created.",
-          "format": "date-time"
-        }
+        "id": { "type": "string" },
+        "ticketId": { "type": "string" },
+        "body": { "type": "string" },
+        "authorId": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
       },
-      "required": [
-        "id",
-        "ticketId",
-        "body",
-        "authorId",
-        "createdAt"
-      ]
+      "required": ["id", "ticketId", "body", "authorId", "createdAt"]
     }
   },
   "auth": {
@@ -348,6 +180,16 @@
             "$ref": "#/backend/entities/User"
           },
           "description": "Grants administrative privileges."
+        }
+      },
+      {
+        "path": "/media_library/{assetId}",
+        "definition": {
+          "entityName": "MediaAsset",
+          "schema": {
+            "$ref": "#/backend/entities/MediaAsset"
+          },
+          "description": "Metadata for uploaded media files."
         }
       },
       {
@@ -431,6 +273,6 @@
         }
       }
     ],
-    "reasoning": "Standardized industrial data architecture with global configuration document for features like maintenance mode."
+    "reasoning": "Standardized industrial data architecture with a central media library to manage project photos and videos."
   }
 }

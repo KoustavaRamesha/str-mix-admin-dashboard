@@ -41,6 +41,11 @@ service cloud.firestore {
       allow create, update, delete: if false;
     }
 
+    match /media_library/{assetId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
     match /admin_posts/{postId} {
       allow get, list: if isAdmin();
       allow create: if isAdmin() && request.resource.data.authorId == request.auth.uid;

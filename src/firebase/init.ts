@@ -1,14 +1,17 @@
+
 'use client';
 
 import { firebaseConfig } from '@/firebase/config';
 import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
 import { getAuth, Auth } from 'firebase/auth';
 import { getFirestore, Firestore } from 'firebase/firestore';
+import { getStorage, FirebaseStorage } from 'firebase/storage';
 
-// Singleton instances to prevent internal assertion errors in Firestore 11.x
+// Singleton instances to prevent internal assertion errors
 let appInstance: FirebaseApp | undefined;
 let authInstance: Auth | undefined;
 let dbInstance: Firestore | undefined;
+let storageInstance: FirebaseStorage | undefined;
 
 /**
  * Returns the SDK instances associated with the provided app.
@@ -17,11 +20,13 @@ let dbInstance: Firestore | undefined;
 export function getSdks(app: FirebaseApp) {
   if (!authInstance) authInstance = getAuth(app);
   if (!dbInstance) dbInstance = getFirestore(app);
+  if (!storageInstance) storageInstance = getStorage(app);
   
   return {
     firebaseApp: app,
     auth: authInstance,
-    firestore: dbInstance
+    firestore: dbInstance,
+    storage: storageInstance
   };
 }
 

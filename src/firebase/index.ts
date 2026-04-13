@@ -1,3 +1,4 @@
+
 'use client';
 
 export * from './init';
@@ -9,3 +10,6 @@ export * from './non-blocking-updates';
 export * from './non-blocking-login';
 export * from './errors';
 export * from './error-emitter';
+
+// Extra helpers for easier usage
+export { useStorage } from './provider';
