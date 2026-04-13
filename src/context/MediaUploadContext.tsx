@@ -4,7 +4,7 @@
 import React, { createContext, useContext, useState, useRef, useCallback } from 'react';
 import { ref, uploadBytesResumable, getDownloadURL, UploadTask as FirebaseUploadTask } from 'firebase/storage';
 import { collection } from 'firebase/firestore';
-import { useFirestore, useStorage, addDocumentNonBlocking } from '@/firebase';
+import { useFirestore, useStorage, useAuth, addDocumentNonBlocking } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 
 interface UploadStatus {
@@ -27,6 +27,7 @@ export function MediaUploadProvider({ children }: { children: React.ReactNode })
   const lastUpdateRef = useRef<{ [key: string]: number }>({});
   const db = useFirestore();
   const storage = useStorage();
+  const auth = useAuth();
   const { toast } = useToast();
 
   const cancelUpload = useCallback((fileName: string) => {
@@ -45,7 +46,20 @@ export function MediaUploadProvider({ children }: { children: React.ReactNode })
 
   const uploadFiles = useCallback((files: FileList) => {
     if (!storage || !db) {
-      toast({ variant: "destructive", title: "Service Error", description: "Storage or Database service is not available." });
+      toast({ 
+        variant: "destructive", 
+        title: "Service Unavailable", 
+        description: "Firebase Storage or Firestore is not properly initialized. Please check your configuration." 
+      });
+      return;
+    }
+
+    if (!auth.currentUser) {
+      toast({ 
+        variant: "destructive", 
+        title: "Unauthorized", 
+        description: "You must be signed in to upload files. Please log in and try again." 
+      });
       return;
     }
 
@@ -62,6 +76,7 @@ export function MediaUploadProvider({ children }: { children: React.ReactNode })
         activeTasks.current[file.name] = task;
         lastUpdateRef.current[file.name] = 0;
 
+        // Initialize queue entry
         setUploadQueue(prev => ({
           ...prev,
           [file.name]: { name: file.name, progress: 0, status: 'uploading' }
@@ -87,17 +102,21 @@ export function MediaUploadProvider({ children }: { children: React.ReactNode })
           (error) => {
             if (error.code === 'storage/canceled') return;
             
+            console.error(`Upload error for ${file.name}:`, error);
+            
             setUploadQueue(prev => {
               const next = { ...prev };
               if (next[file.name]) next[file.name].status = 'error';
               return next;
             });
+            
             delete activeTasks.current[file.name];
             delete lastUpdateRef.current[file.name];
             
-            let message = error.message;
-            if (error.code === 'storage/unauthorized') message = "Access Denied. Check your security rules.";
+            let message = "An unknown error occurred during the transfer.";
+            if (error.code === 'storage/unauthorized') message = "Access Denied. Ensure your security rules permit this upload.";
             if (error.code === 'storage/quota-exceeded') message = "Storage quota exceeded.";
+            if (error.code === 'storage/unknown') message = "Server error. This might be a temporary storage bucket issue.";
             
             toast({ variant: "destructive", title: "Upload Failed", description: `${file.name}: ${message}` });
           },
@@ -120,6 +139,7 @@ export function MediaUploadProvider({ children }: { children: React.ReactNode })
               
               delete activeTasks.current[file.name];
               delete lastUpdateRef.current[file.name];
+              
               setUploadQueue(prev => {
                 const next = { ...prev };
                 delete next[file.name];
@@ -128,15 +148,17 @@ export function MediaUploadProvider({ children }: { children: React.ReactNode })
               
               toast({ title: "Asset Registered", description: `${file.name} is now available in your library.` });
             } catch (e: any) {
-              toast({ variant: "destructive", title: "Registration Error", description: `Could not finalize ${file.name}.` });
+              console.error("Finalization error:", e);
+              toast({ variant: "destructive", title: "Registration Error", description: `File uploaded but could not register metadata for ${file.name}.` });
             }
           }
         );
       } catch (err: any) {
-        toast({ variant: "destructive", title: "Initialization Error", description: `Could not start upload for ${file.name}.` });
+        console.error("Initialization error:", err);
+        toast({ variant: "destructive", title: "Initialization Error", description: `Could not start upload for ${file.name}. ${err.message}` });
       }
     });
-  }, [db, storage, toast]);
+  }, [db, storage, auth, toast]);
 
   const value = React.useMemo(() => ({
     uploadQueue,
