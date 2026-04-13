@@ -2,44 +2,97 @@
 "use client"
 
 import { useState } from "react"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { 
   Search, 
-  Filter, 
   LifeBuoy, 
   Send, 
   Paperclip, 
   User, 
   Clock, 
   CheckCircle2,
-  AlertTriangle,
   History,
   Tag,
-  ChevronRight
+  Loader2,
+  Inbox
 } from "lucide-react"
-import { useToast } from "@/hooks/use-toast"
-
-const mockTickets = [
-  { id: "TK-8842", subject: "Slab Cracking Inquiry", customer: "Apex Logistics", priority: "urgent", status: "open", date: "2h ago", category: "Technical", assigned: "Mark Steel" },
-  { id: "TK-8839", subject: "Invoicing Discrepancy", customer: "The Zenith Tower", priority: "normal", status: "in-progress", date: "5h ago", category: "Billing", assigned: "Sarah Concrete" },
-  { id: "TK-8835", subject: "Decorative Pattern Request", customer: "Riverfront Prom", priority: "low", status: "open", date: "1d ago", category: "Design", assigned: "Unassigned" },
-  { id: "TK-8830", subject: "Site Access Procedures", customer: "Modernist Villa", priority: "normal", status: "resolved", date: "2d ago", category: "Operations", assigned: "Mark Steel" },
-]
+import { 
+  useFirestore, 
+  useCollection, 
+  useMemoFirebase, 
+  useUser,
+  addDocumentNonBlocking,
+  updateDocumentNonBlocking
+} from "@/firebase"
+import { collection, query, orderBy, doc, DocumentData } from "firebase/firestore"
 
 export default function TicketSystem() {
-  const [activeTicket, setActiveTicket] = useState(mockTickets[0])
+  const [activeTicket, setActiveTicket] = useState<any>(null)
   const [reply, setReply] = useState("")
-  const { toast } = useToast()
+  const [searchTerm, setSearchTerm] = useState("")
+  
+  const db = useFirestore()
+  const { user } = useUser()
+
+  // 1. Fetch all tickets
+  const ticketsQuery = useMemoFirebase(() => {
+    return query(collection(db, 'support_tickets'), orderBy('createdAt', 'desc'))
+  }, [db])
+
+  const { data: tickets, isLoading: ticketsLoading } = useCollection(ticketsQuery)
+
+  // 2. Fetch replies for the active ticket
+  const repliesQuery = useMemoFirebase(() => {
+    if (!activeTicket?.id) return null
+    return query(
+      collection(db, 'support_tickets', activeTicket.id, 'replies'),
+      orderBy('createdAt', 'asc')
+    )
+  }, [db, activeTicket?.id])
+
+  const { data: replies } = useCollection(repliesQuery)
 
   const handleSendReply = () => {
-    if (!reply) return
-    toast({ title: "Reply Sent", description: "The customer has been notified via email." })
+    if (!reply || !activeTicket || !user) return
+    
+    const replyData = {
+      ticketId: activeTicket.id,
+      body: reply,
+      authorId: user.uid,
+      authorName: user.displayName || user.email,
+      createdAt: new Date().toISOString(),
+    }
+
+    addDocumentNonBlocking(
+      collection(db, 'support_tickets', activeTicket.id, 'replies'),
+      replyData
+    )
+
+    // Update ticket status to 'in-progress' if it was 'open'
+    if (activeTicket.status === 'open') {
+      updateDocumentNonBlocking(doc(db, 'support_tickets', activeTicket.id), {
+        status: 'in-progress'
+      })
+    }
+
     setReply("")
   }
+
+  const handleResolve = (ticketId: string) => {
+    updateDocumentNonBlocking(doc(db, 'support_tickets', ticketId), {
+      status: 'resolved'
+    })
+  }
+
+  const filteredTickets = tickets?.filter(t => 
+    t.subject?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    t.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    t.id?.toLowerCase().includes(searchTerm.toLowerCase())
+  )
 
   return (
     <div className="space-y-8 h-[calc(100vh-12rem)] flex flex-col">
@@ -50,7 +103,6 @@ export default function TicketSystem() {
         </div>
         <div className="flex gap-2 w-full md:w-auto">
           <Button variant="outline" className="rounded-none font-bold uppercase text-[10px] border-muted"><History className="h-3 w-3 mr-2" /> Resolved Archive</Button>
-          <Button className="bg-primary text-primary-foreground font-bold uppercase rounded-none text-[10px]"><LifeBuoy className="h-3 w-3 mr-2" /> New Ticket</Button>
         </div>
       </div>
 
@@ -60,128 +112,164 @@ export default function TicketSystem() {
           <div className="p-4 border-b-2 border-muted shrink-0">
             <div className="relative">
               <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
-              <Input placeholder="Filter by ID or Subject..." className="pl-8 h-9 rounded-none bg-background border-muted text-[10px] uppercase font-bold" />
-            </div>
-            <div className="flex gap-2 mt-4 overflow-x-auto pb-2">
-              <Badge className="rounded-none bg-primary text-primary-foreground text-[8px] uppercase">All Open</Badge>
-              <Badge variant="outline" className="rounded-none text-[8px] uppercase border-muted">Urgent</Badge>
-              <Badge variant="outline" className="rounded-none text-[8px] uppercase border-muted">My Tasks</Badge>
+              <Input 
+                placeholder="Filter by ID or Subject..." 
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-8 h-9 rounded-none bg-background border-muted text-[10px] uppercase font-bold" 
+              />
             </div>
           </div>
           <div className="flex-1 overflow-y-auto p-0">
-            {mockTickets.map((ticket) => (
-              <div 
-                key={ticket.id} 
-                onClick={() => setActiveTicket(ticket)}
-                className={`p-4 border-b border-muted cursor-pointer transition-colors hover:bg-muted/10 ${activeTicket.id === ticket.id ? 'bg-primary/10 border-r-4 border-r-primary' : ''}`}
-              >
-                <div className="flex justify-between items-start mb-1">
-                  <span className="text-[10px] font-bold font-mono text-muted-foreground">{ticket.id}</span>
-                  <Badge className={`rounded-none text-[8px] uppercase font-bold ${
-                    ticket.priority === 'urgent' ? 'bg-red-500/10 text-red-500' :
-                    ticket.priority === 'normal' ? 'bg-blue-500/10 text-blue-500' : 'bg-muted text-muted-foreground'
-                  }`}>
-                    {ticket.priority}
-                  </Badge>
+            {ticketsLoading ? (
+              <div className="p-8 text-center"><Loader2 className="h-6 w-6 animate-spin mx-auto text-primary" /></div>
+            ) : filteredTickets?.length === 0 ? (
+              <div className="p-12 text-center text-[10px] font-bold uppercase text-muted-foreground">No Tickets Found</div>
+            ) : (
+              filteredTickets?.map((ticket) => (
+                <div 
+                  key={ticket.id} 
+                  onClick={() => setActiveTicket(ticket)}
+                  className={`p-4 border-b border-muted cursor-pointer transition-colors hover:bg-muted/10 ${activeTicket?.id === ticket.id ? 'bg-primary/10 border-r-4 border-r-primary' : ''}`}
+                >
+                  <div className="flex justify-between items-start mb-1">
+                    <span className="text-[10px] font-bold font-mono text-muted-foreground truncate max-w-[100px]">{ticket.id}</span>
+                    <Badge className={`rounded-none text-[8px] uppercase font-bold ${
+                      ticket.status === 'open' ? 'bg-red-500/10 text-red-500' :
+                      ticket.status === 'in-progress' ? 'bg-blue-500/10 text-blue-500' : 'bg-green-500/10 text-green-500'
+                    }`}>
+                      {ticket.status}
+                    </Badge>
+                  </div>
+                  <h4 className="text-xs font-bold uppercase truncate">{ticket.subject}</h4>
+                  <div className="flex justify-between items-center mt-2">
+                    <span className="text-[10px] font-bold text-muted-foreground uppercase">{ticket.name}</span>
+                    <span className="text-[9px] text-muted-foreground">{new Date(ticket.createdAt).toLocaleDateString()}</span>
+                  </div>
                 </div>
-                <h4 className="text-xs font-bold uppercase truncate">{ticket.subject}</h4>
-                <div className="flex justify-between items-center mt-2">
-                  <span className="text-[10px] font-bold text-muted-foreground uppercase">{ticket.customer}</span>
-                  <span className="text-[9px] text-muted-foreground">{ticket.date}</span>
-                </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </Card>
 
         {/* Conversation Thread */}
         <Card className="lg:col-span-2 bg-card border-2 border-muted flex flex-col overflow-hidden">
-          <CardHeader className="p-6 border-b-2 border-muted shrink-0">
-            <div className="flex justify-between items-start">
-              <div>
-                <div className="flex items-center gap-3 mb-1">
-                  <span className="text-xs font-bold font-mono text-primary">{activeTicket.id}</span>
-                  <Badge className="rounded-none text-[9px] uppercase font-bold bg-muted/50">{activeTicket.status}</Badge>
-                </div>
-                <CardTitle className="text-xl font-headline font-bold uppercase tracking-tight">{activeTicket.subject}</CardTitle>
-                <div className="flex items-center gap-4 mt-2">
-                  <div className="flex items-center gap-1">
-                    <User className="h-3 w-3 text-muted-foreground" />
-                    <span className="text-[10px] font-bold uppercase text-muted-foreground">{activeTicket.customer}</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Tag className="h-3 w-3 text-muted-foreground" />
-                    <span className="text-[10px] font-bold uppercase text-muted-foreground">{activeTicket.category}</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Clock className="h-3 w-3 text-muted-foreground" />
-                    <span className="text-[10px] font-bold uppercase text-muted-foreground">Assigned: {activeTicket.assigned}</span>
-                  </div>
-                </div>
-              </div>
-              <div className="flex gap-2">
-                <Button variant="outline" size="sm" className="h-8 rounded-none text-[9px] font-bold uppercase border-muted">Transfer</Button>
-                <Button size="sm" className="h-8 rounded-none text-[9px] font-bold uppercase bg-green-500 hover:bg-green-600 text-white"><CheckCircle2 className="h-3 w-3 mr-1" /> Resolve</Button>
-              </div>
+          {!activeTicket ? (
+            <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground gap-4">
+              <Inbox className="h-12 w-12 opacity-20" />
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em]">Select a Transmission to Inspect</p>
             </div>
-          </CardHeader>
-          <CardContent className="flex-1 overflow-y-auto p-6 space-y-6 bg-muted/5">
-            <div className="flex flex-col gap-4">
-              <div className="flex gap-4">
-                <div className="h-10 w-10 shrink-0 bg-muted rounded border flex items-center justify-center font-bold text-xs">AL</div>
-                <div className="flex-1 space-y-2">
-                  <div className="flex justify-between">
-                    <span className="text-xs font-bold uppercase">Apex Logistics • Site Manager</span>
-                    <span className="text-[10px] text-muted-foreground uppercase">2 hours ago</span>
+          ) : (
+            <>
+              <CardHeader className="p-6 border-b-2 border-muted shrink-0">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <div className="flex items-center gap-3 mb-1">
+                      <span className="text-xs font-bold font-mono text-primary">{activeTicket.id}</span>
+                      <Badge className="rounded-none text-[9px] uppercase font-bold bg-muted/50">{activeTicket.status}</Badge>
+                    </div>
+                    <CardTitle className="text-xl font-headline font-bold uppercase tracking-tight">{activeTicket.subject}</CardTitle>
+                    <div className="flex items-center gap-4 mt-2">
+                      <div className="flex items-center gap-1">
+                        <User className="h-3 w-3 text-muted-foreground" />
+                        <span className="text-[10px] font-bold uppercase text-muted-foreground">{activeTicket.name}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Clock className="h-3 w-3 text-muted-foreground" />
+                        <span className="text-[10px] font-bold uppercase text-muted-foreground">Email: {activeTicket.email}</span>
+                      </div>
+                    </div>
                   </div>
-                  <div className="p-4 bg-background border-2 border-muted rounded-none">
-                    <p className="text-sm text-muted-foreground leading-relaxed">
-                      We've noticed some hairline fractures appearing on the Section C slab poured last week. Can you send someone out to inspect if this is within ASTM tolerance? We're scheduled for racking installation on Monday.
-                    </p>
+                  <div className="flex gap-2">
+                    <Button 
+                      size="sm" 
+                      className="rounded-none h-8 text-[9px] font-bold uppercase bg-green-500 hover:bg-green-600 text-white"
+                      onClick={() => handleResolve(activeTicket.id)}
+                      disabled={activeTicket.status === 'resolved'}
+                    >
+                      <CheckCircle2 className="h-3 w-3 mr-1" /> {activeTicket.status === 'resolved' ? 'Resolved' : 'Resolve'}
+                    </Button>
                   </div>
                 </div>
-              </div>
+              </CardHeader>
+              <CardContent className="flex-1 overflow-y-auto p-6 space-y-6 bg-muted/5">
+                <div className="flex flex-col gap-6">
+                  {/* Original Message */}
+                  <div className="flex gap-4">
+                    <div className="h-10 w-10 shrink-0 bg-muted rounded border flex items-center justify-center font-bold text-xs">
+                      {activeTicket.name.charAt(0)}
+                    </div>
+                    <div className="flex-1 space-y-2">
+                      <div className="flex justify-between">
+                        <span className="text-xs font-bold uppercase">{activeTicket.name} • Client</span>
+                        <span className="text-[10px] text-muted-foreground uppercase">{new Date(activeTicket.createdAt).toLocaleString()}</span>
+                      </div>
+                      <div className="p-4 bg-background border-2 border-muted rounded-none">
+                        <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">
+                          {activeTicket.body}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
 
-              <div className="flex gap-4 flex-row-reverse">
-                <div className="h-10 w-10 shrink-0 bg-primary rounded border-2 border-primary flex items-center justify-center font-bold text-xs text-primary-foreground">MS</div>
-                <div className="flex-1 space-y-2 text-right">
-                  <div className="flex justify-between flex-row-reverse">
-                    <span className="text-xs font-bold uppercase text-primary">Mark Steel • Super Admin</span>
-                    <span className="text-[10px] text-muted-foreground uppercase">45 mins ago</span>
-                  </div>
-                  <div className="p-4 bg-primary/5 border-2 border-primary/20 rounded-none text-left ml-auto max-w-[80%]">
-                    <p className="text-sm text-muted-foreground leading-relaxed">
-                      Copy that, Apex. Hairline cracks are common during initial hydration but we'll verify. I've dispatched Engineer Mason to your site for a 10 AM inspection tomorrow. He'll have the thermal imaging gear to check depth.
-                    </p>
+                  {/* Replies Thread */}
+                  {replies?.map((item) => (
+                    <div 
+                      key={item.id} 
+                      className={`flex gap-4 ${item.authorId === user?.uid ? 'flex-row-reverse' : ''}`}
+                    >
+                      <div className={`h-10 w-10 shrink-0 rounded border flex items-center justify-center font-bold text-xs ${
+                        item.authorId === user?.uid ? 'bg-primary text-primary-foreground border-primary' : 'bg-muted border-muted'
+                      }`}>
+                        {item.authorName?.charAt(0) || 'U'}
+                      </div>
+                      <div className={`flex-1 space-y-2 ${item.authorId === user?.uid ? 'text-right' : 'text-left'}`}>
+                        <div className={`flex justify-between ${item.authorId === user?.uid ? 'flex-row-reverse' : ''}`}>
+                          <span className={`text-xs font-bold uppercase ${item.authorId === user?.uid ? 'text-primary' : ''}`}>
+                            {item.authorName} {item.authorId === user?.uid ? '• Super Admin' : '• Staff'}
+                          </span>
+                          <span className="text-[10px] text-muted-foreground uppercase">{new Date(item.createdAt).toLocaleString()}</span>
+                        </div>
+                        <div className={`p-4 rounded-none border-2 max-w-[85%] ${
+                          item.authorId === user?.uid 
+                            ? 'bg-primary/5 border-primary/20 ml-auto' 
+                            : 'bg-background border-muted'
+                        }`}>
+                          <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap text-left">
+                            {item.body}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+              <div className="p-6 border-t-2 border-muted shrink-0 bg-card">
+                <div className="relative border-2 border-muted rounded-none focus-within:border-primary transition-colors">
+                  <Textarea 
+                    placeholder="Type reply to client... (Markdown supported)" 
+                    className="min-h-[120px] bg-background border-none rounded-none focus-visible:ring-0 text-sm p-4"
+                    value={reply}
+                    onChange={(e) => setReply(e.target.value)}
+                  />
+                  <div className="p-2 border-t border-muted bg-muted/10 flex justify-between items-center">
+                    <div className="flex gap-2">
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground"><Paperclip className="h-4 w-4" /></Button>
+                    </div>
+                    <Button 
+                      size="sm" 
+                      className="rounded-none h-8 text-[9px] font-bold uppercase bg-primary text-primary-foreground"
+                      onClick={handleSendReply}
+                      disabled={!reply || activeTicket.status === 'resolved'}
+                    >
+                      <Send className="h-3 w-3 mr-2" /> Dispatch Reply
+                    </Button>
                   </div>
                 </div>
+                <p className="text-[8px] text-muted-foreground uppercase mt-2 text-center">Reply will be delivered via secure tokenized link to client email.</p>
               </div>
-            </div>
-          </CardContent>
-          <div className="p-6 border-t-2 border-muted shrink-0 bg-card">
-            <div className="relative border-2 border-muted rounded-none focus-within:border-primary transition-colors">
-              <Textarea 
-                placeholder="Type reply to client... (Markdown supported)" 
-                className="min-h-[120px] bg-background border-none rounded-none focus-visible:ring-0 text-sm p-4"
-                value={reply}
-                onChange={(e) => setReply(e.target.value)}
-              />
-              <div className="p-2 border-t border-muted bg-muted/10 flex justify-between items-center">
-                <div className="flex gap-2">
-                  <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground"><Paperclip className="h-4 w-4" /></Button>
-                  <Button variant="ghost" size="sm" className="h-8 px-2 text-[9px] font-bold uppercase rounded-none text-muted-foreground">Internal Note</Button>
-                </div>
-                <Button 
-                  size="sm" 
-                  className="rounded-none h-8 text-[9px] font-bold uppercase bg-primary text-primary-foreground"
-                  onClick={handleSendReply}
-                >
-                  <Send className="h-3 w-3 mr-2" /> Dispatch Reply
-                </Button>
-              </div>
-            </div>
-            <p className="text-[8px] text-muted-foreground uppercase mt-2 text-center">Reply will be delivered via secure tokenized link to client email.</p>
-          </div>
+            </>
+          )}
         </Card>
       </div>
     </div>
