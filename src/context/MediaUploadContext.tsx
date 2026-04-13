@@ -2,41 +2,59 @@
 'use client';
 
 import React, { createContext, useContext, useState, useRef } from 'react';
-import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
+import { ref, uploadBytesResumable, getDownloadURL, UploadTask as FirebaseUploadTask } from 'firebase/storage';
 import { collection } from 'firebase/firestore';
 import { useFirestore, useStorage, addDocumentNonBlocking } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 
-interface UploadTask {
+interface UploadStatus {
   name: string;
   progress: number;
   status: 'uploading' | 'completed' | 'error';
 }
 
 interface MediaUploadContextType {
-  uploadQueue: { [key: string]: UploadTask };
+  uploadQueue: { [key: string]: UploadStatus };
   uploadFiles: (files: FileList) => void;
+  cancelUpload: (fileName: string) => void;
 }
 
 const MediaUploadContext = createContext<MediaUploadContextType | undefined>(undefined);
 
 export function MediaUploadProvider({ children }: { children: React.ReactNode }) {
-  const [uploadQueue, setUploadQueue] = useState<{ [key: string]: UploadTask }>({});
+  const [uploadQueue, setUploadQueue] = useState<{ [key: string]: UploadStatus }>({});
+  const activeTasks = useRef<{ [key: string]: FirebaseUploadTask }>({});
   const db = useFirestore();
   const storage = useStorage();
   const { toast } = useToast();
 
+  const cancelUpload = (fileName: string) => {
+    if (activeTasks.current[fileName]) {
+      activeTasks.current[fileName].cancel();
+      delete activeTasks.current[fileName];
+      setUploadQueue(prev => {
+        const next = { ...prev };
+        delete next[fileName];
+        return next;
+      });
+      toast({ title: "Upload Cancelled", description: `Transfer of ${fileName} was stopped.` });
+    }
+  };
+
   const uploadFiles = (files: FileList) => {
     Array.from(files).forEach(file => {
-      const storageRef = ref(storage, `media/${Date.now()}_${file.name}`);
-      const uploadTask = uploadBytesResumable(storageRef, file);
+      const storagePath = `media/${Date.now()}_${file.name}`;
+      const storageRef = ref(storage, storagePath);
+      const task = uploadBytesResumable(storageRef, file);
+
+      activeTasks.current[file.name] = task;
 
       setUploadQueue(prev => ({
         ...prev,
         [file.name]: { name: file.name, progress: 0, status: 'uploading' }
       }));
 
-      uploadTask.on('state_changed',
+      task.on('state_changed',
         (snapshot) => {
           const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
           setUploadQueue(prev => ({
@@ -45,14 +63,20 @@ export function MediaUploadProvider({ children }: { children: React.ReactNode })
           }));
         },
         (error) => {
+          // Handle cancellation or genuine errors
+          if (error.code === 'storage/canceled') {
+            return;
+          }
+          
           setUploadQueue(prev => ({
             ...prev,
             [file.name]: { ...prev[file.name], status: 'error' }
           }));
+          delete activeTasks.current[file.name];
           toast({ variant: "destructive", title: "Upload Failed", description: error.message });
         },
         async () => {
-          const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+          const downloadURL = await getDownloadURL(task.snapshot.ref);
           
           const assetData = {
             name: file.name,
@@ -66,6 +90,7 @@ export function MediaUploadProvider({ children }: { children: React.ReactNode })
 
           addDocumentNonBlocking(collection(db, 'media_library'), assetData);
           
+          delete activeTasks.current[file.name];
           setUploadQueue(prev => {
             const next = { ...prev };
             delete next[file.name];
@@ -79,7 +104,7 @@ export function MediaUploadProvider({ children }: { children: React.ReactNode })
   };
 
   return (
-    <MediaUploadContext.Provider value={{ uploadQueue, uploadFiles }}>
+    <MediaUploadContext.Provider value={{ uploadQueue, uploadFiles, cancelUpload }}>
       {children}
     </MediaUploadContext.Provider>
   );

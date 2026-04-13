@@ -17,7 +17,8 @@ import {
   Users as UsersIcon,
   Loader2,
   ShieldAlert,
-  Loader
+  Loader,
+  X
 } from "lucide-react"
 import { 
   Sidebar, 
@@ -50,7 +51,7 @@ const adminNav = [
 ]
 
 function GlobalUploadIndicator() {
-  const { uploadQueue } = useMediaUpload();
+  const { uploadQueue, cancelUpload } = useMediaUpload();
   const activeUploads = Object.values(uploadQueue);
   
   if (activeUploads.length === 0) return null;
@@ -65,10 +66,18 @@ function GlobalUploadIndicator() {
       </div>
       <div className="p-3 space-y-3 max-h-48 overflow-y-auto">
         {activeUploads.map((task) => (
-          <div key={task.name} className="space-y-1">
-            <div className="flex justify-between text-[8px] font-bold uppercase truncate">
+          <div key={task.name} className="space-y-1 group">
+            <div className="flex justify-between text-[8px] font-bold uppercase truncate items-center">
               <span className="truncate flex-1">{task.name}</span>
-              <span className="ml-2">{Math.round(task.progress)}%</span>
+              <div className="flex items-center gap-2">
+                <span className="ml-2">{Math.round(task.progress)}%</span>
+                <button 
+                  onClick={() => cancelUpload(task.name)}
+                  className="text-muted-foreground hover:text-destructive transition-colors"
+                >
+                  <X className="h-2.5 w-2.5" />
+                </button>
+              </div>
             </div>
             <Progress value={task.progress} className="h-1 rounded-none bg-muted" />
           </div>
