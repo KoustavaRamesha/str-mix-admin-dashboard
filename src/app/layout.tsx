@@ -4,6 +4,7 @@ import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 import { FirebaseClientProvider } from "@/firebase/client-provider";
 import { MaintenanceGuard } from "@/components/maintenance-guard";
+import { AnalyticsTracker } from "@/components/analytics-tracker";
 import { Inter, Space_Grotesk } from 'next/font/google';
 
 const inter = Inter({ 
@@ -32,6 +33,7 @@ export default function RootLayout({
     <html lang="en" className={`dark ${inter.variable} ${spaceGrotesk.variable}`}>
       <body className="font-body antialiased bg-background text-foreground min-h-screen">
         <FirebaseClientProvider>
+          <AnalyticsTracker />
           <MaintenanceGuard>
             {children}
           </MaintenanceGuard>

@@ -48,6 +48,10 @@
         "contactEmail": {
           "type": "string",
           "format": "email"
+        },
+        "visitorCount": {
+          "type": "number",
+          "description": "Total number of site visits recorded."
         }
       }
     },

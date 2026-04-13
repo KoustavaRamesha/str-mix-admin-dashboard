@@ -29,8 +29,8 @@ import {
 } from 'recharts'
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
-import { useFirestore, useCollection, useMemoFirebase, useUser } from "@/firebase"
-import { collection, query, orderBy, limit } from "firebase/firestore"
+import { useFirestore, useCollection, useMemoFirebase, useUser, useDoc } from "@/firebase"
+import { collection, query, orderBy, limit, doc } from "firebase/firestore"
 
 export default function AdminDashboard() {
   const [lastRefresh, setLastRefresh] = useState<string>("")
@@ -41,6 +41,7 @@ export default function AdminDashboard() {
   const postsQuery = useMemoFirebase(() => collection(db, 'admin_posts'), [db]);
   const reviewsQuery = useMemoFirebase(() => collection(db, 'admin_reviews'), [db]);
   const ticketsQuery = useMemoFirebase(() => collection(db, 'support_tickets'), [db]);
+  const settingsRef = useMemoFirebase(() => doc(db, 'settings', 'global'), [db]);
   
   // Recent activity query
   const recentTicketsQuery = useMemoFirebase(() => 
@@ -51,11 +52,13 @@ export default function AdminDashboard() {
   const { data: reviews, isLoading: reviewsLoading } = useCollection(reviewsQuery);
   const { data: tickets, isLoading: ticketsLoading } = useCollection(ticketsQuery);
   const { data: recentTickets } = useCollection(recentTicketsQuery);
+  const { data: settings, isLoading: settingsLoading } = useDoc(settingsRef);
 
   useEffect(() => {
     setLastRefresh(new Date().toLocaleTimeString())
-  }, [posts, reviews, tickets])
+  }, [posts, reviews, tickets, settings])
 
+  const visitorCount = settings?.visitorCount || 0;
   const publishedCount = posts?.filter(p => p.status === 'published').length || 0;
   const draftCount = posts?.filter(p => p.status === 'draft').length || 0;
   const pendingReviewsCount = reviews?.length || 0;
@@ -63,7 +66,7 @@ export default function AdminDashboard() {
   const urgentTicketsCount = tickets?.filter(t => t.priority === 'urgent' && t.status === 'open').length || 0;
 
   const stats = [
-    { label: "Site Visitors", value: "12,842", icon: Users, trend: "Est. Monthly", color: "text-primary" },
+    { label: "Site Visitors", value: visitorCount.toLocaleString(), icon: Users, trend: "Live Counter", color: "text-primary" },
     { label: "Blog Posts", value: `${publishedCount} / ${draftCount}`, icon: FileText, trend: "Published / Drafts", color: "text-blue-400" },
     { label: "Pending Reviews", value: pendingReviewsCount.toString(), icon: Star, trend: "Awaiting Action", color: "text-yellow-500" },
     { label: "Open Tickets", value: openTicketsCount.toString(), icon: LifeBuoy, trend: `${urgentTicketsCount} Urgent`, color: "text-red-500" },
@@ -152,7 +155,7 @@ export default function AdminDashboard() {
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-headline font-bold">
-                {postsLoading || reviewsLoading || ticketsLoading ? <Loader2 className="h-6 w-6 animate-spin" /> : stat.value}
+                {postsLoading || reviewsLoading || ticketsLoading || settingsLoading ? <Loader2 className="h-6 w-6 animate-spin" /> : stat.value}
               </div>
               <p className="text-[10px] flex items-center gap-1 mt-1 font-bold uppercase text-muted-foreground">
                 {stat.trend}
