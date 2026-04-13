@@ -123,6 +123,7 @@
         "id": { "type": "string" },
         "name": { "type": "string" },
         "email": { "type": "string", "format": "email" },
+        "phone": { "type": "string" },
         "subject": { "type": "string" },
         "body": { "type": "string" },
         "status": { "type": "string" },

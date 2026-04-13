@@ -18,7 +18,8 @@ import {
   History,
   Tag,
   Loader2,
-  Inbox
+  Inbox,
+  Phone
 } from "lucide-react"
 import { 
   useFirestore, 
@@ -169,15 +170,21 @@ export default function TicketSystem() {
                       <Badge className="rounded-none text-[9px] uppercase font-bold bg-muted/50">{activeTicket.status}</Badge>
                     </div>
                     <CardTitle className="text-xl font-headline font-bold uppercase tracking-tight">{activeTicket.subject}</CardTitle>
-                    <div className="flex items-center gap-4 mt-2">
+                    <div className="flex flex-wrap items-center gap-x-6 gap-y-2 mt-2">
                       <div className="flex items-center gap-1">
                         <User className="h-3 w-3 text-muted-foreground" />
                         <span className="text-[10px] font-bold uppercase text-muted-foreground">{activeTicket.name}</span>
                       </div>
                       <div className="flex items-center gap-1">
                         <Clock className="h-3 w-3 text-muted-foreground" />
-                        <span className="text-[10px] font-bold uppercase text-muted-foreground">Email: {activeTicket.email}</span>
+                        <span className="text-[10px] font-bold uppercase text-muted-foreground">{activeTicket.email}</span>
                       </div>
+                      {activeTicket.phone && (
+                        <div className="flex items-center gap-1">
+                          <Phone className="h-3 w-3 text-primary" />
+                          <span className="text-[10px] font-bold uppercase text-muted-foreground">{activeTicket.phone}</span>
+                        </div>
+                      )}
                     </div>
                   </div>
                   <div className="flex gap-2">

@@ -1,3 +1,4 @@
+
 "use client"
 
 import { Navbar } from "@/components/navbar"
@@ -28,16 +29,24 @@ export default function ContactPage() {
     const ticketData = {
       name: formData.get('name') as string,
       email: formData.get('email') as string,
+      phone: formData.get('phone') as string,
       subject: formData.get('subject') as string,
       body: formData.get('message') as string,
       status: 'open',
       createdAt: new Date().toISOString(),
     }
 
-    addDocumentNonBlocking(collection(db, 'support_tickets'), ticketData);
-
-    setLoading(false)
-    form.reset()
+    addDocumentNonBlocking(collection(db, 'support_tickets'), ticketData)
+      .then(() => {
+        toast({
+          title: "Transmission Received",
+          description: "Your project details have been queued for structural review.",
+        })
+        form.reset()
+      })
+      .finally(() => {
+        setLoading(false)
+      })
   }
 
   return (
@@ -104,9 +113,15 @@ export default function ContactPage() {
                       <Input id="email" name="email" type="email" placeholder="john@example.com" required className="bg-background rounded-none border-muted h-12" />
                     </div>
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="subject" className="uppercase text-xs font-bold tracking-widest text-muted-foreground">Subject</Label>
-                    <Input id="subject" name="subject" placeholder="New Project Inquiry" required className="bg-background rounded-none border-muted h-12" />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="phone" className="uppercase text-xs font-bold tracking-widest text-muted-foreground">Phone Number</Label>
+                      <Input id="phone" name="phone" type="tel" placeholder="(555) 000-0000" className="bg-background rounded-none border-muted h-12" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="subject" className="uppercase text-xs font-bold tracking-widest text-muted-foreground">Subject</Label>
+                      <Input id="subject" name="subject" placeholder="New Project Inquiry" required className="bg-background rounded-none border-muted h-12" />
+                    </div>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="message" className="uppercase text-xs font-bold tracking-widest text-muted-foreground">Project Details</Label>
