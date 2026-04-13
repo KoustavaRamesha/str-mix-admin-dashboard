@@ -1,4 +1,3 @@
-
 "use client"
 
 import * as React from "react"
@@ -66,13 +65,13 @@ function GlobalUploadIndicator() {
       </div>
       <div className="p-3 space-y-3 max-h-48 overflow-y-auto">
         {activeUploads.map((task) => (
-          <div key={task.name} className="space-y-1 group">
+          <div key={task.id} className="space-y-1 group">
             <div className="flex justify-between text-[8px] font-bold uppercase truncate items-center">
               <span className="truncate flex-1">{task.name}</span>
               <div className="flex items-center gap-2">
                 <span className="ml-2">{Math.round(task.progress)}%</span>
                 <button 
-                  onClick={() => cancelUpload(task.name)}
+                  onClick={() => cancelUpload(task.id)}
                   className="text-muted-foreground hover:text-destructive transition-colors"
                 >
                   <X className="h-2.5 w-2.5" />
