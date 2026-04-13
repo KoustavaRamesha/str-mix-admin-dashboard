@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState } from "react"
@@ -8,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
-import { Star, MessageSquare, Quote, Loader2 } from "lucide-react"
+import { Star, MessageSquare, Quote, Loader2, CheckCircle2 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { useFirestore, useCollection, useMemoFirebase, addDocumentNonBlocking } from "@/firebase"
 import { collection, query, orderBy } from "firebase/firestore"
@@ -16,6 +17,7 @@ import { collection, query, orderBy } from "firebase/firestore"
 export default function ReviewsPage() {
   const db = useFirestore()
   const [loading, setLoading] = useState(false)
+  const [submitted, setSubmitted] = useState(false)
   const [rating, setRating] = useState(5)
   const { toast } = useToast()
 
@@ -42,11 +44,23 @@ export default function ReviewsPage() {
     }
 
     const adminReviewsRef = collection(db, 'admin_reviews');
+    
+    // Using non-blocking update to register the review in the moderation queue
     addDocumentNonBlocking(adminReviewsRef, reviewData);
 
+    // Explicitly notify the client with a professional industrial-themed toast
+    toast({
+      title: "Transmission Received",
+      description: "Your project feedback has been securely queued for structural review and verification.",
+    })
+
     setLoading(false)
+    setSubmitted(true)
     form.reset()
     setRating(5)
+
+    // Automatically return to standard form view after a delay
+    setTimeout(() => setSubmitted(false), 8000)
   }
 
   return (
@@ -74,39 +88,60 @@ export default function ReviewsPage() {
                     <CardDescription>How did we perform on your last project?</CardDescription>
                   </CardHeader>
                   <CardContent className="pt-6">
-                    <form onSubmit={handleSubmitReview} className="space-y-4">
-                      <div className="space-y-2">
-                        <Label className="text-[10px] font-bold uppercase tracking-widest">Full Name</Label>
-                        <Input name="name" placeholder="John Smith" required className="bg-background rounded-none border-muted" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label className="text-[10px] font-bold uppercase tracking-widest">Professional Role</Label>
-                        <Input name="role" placeholder="Project Manager" required className="bg-background rounded-none border-muted" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label className="text-[10px] font-bold uppercase tracking-widest">Rating (1-5)</Label>
-                        <div className="flex gap-2 text-primary">
-                          {[1, 2, 3, 4, 5].map((s) => (
-                            <button 
-                              key={s} 
-                              type="button" 
-                              onClick={() => setRating(s)}
-                              className={`transition-transform hover:scale-125 ${rating >= s ? 'fill-primary' : 'text-muted opacity-50'}`}
-                            >
-                              <Star className={`h-6 w-6 ${rating >= s ? 'fill-current' : ''}`} />
-                            </button>
-                          ))}
+                    {submitted ? (
+                      <div className="py-12 flex flex-col items-center justify-center text-center space-y-4 animate-in fade-in zoom-in duration-500">
+                        <div className="h-16 w-16 bg-primary/10 border-2 border-primary flex items-center justify-center">
+                          <CheckCircle2 className="h-8 w-8 text-primary" />
                         </div>
+                        <div>
+                          <h3 className="text-lg font-bold uppercase tracking-tighter leading-none">Feedback Transmitted</h3>
+                          <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest mt-2">
+                            Your submission is registered in the moderation registry.
+                          </p>
+                        </div>
+                        <Button 
+                          variant="ghost" 
+                          className="text-[10px] uppercase font-bold text-primary hover:bg-primary/10" 
+                          onClick={() => setSubmitted(false)}
+                        >
+                          Submit Another Report
+                        </Button>
                       </div>
-                      <div className="space-y-2">
-                        <Label className="text-[10px] font-bold uppercase tracking-widest">Project Feedback</Label>
-                        <Textarea name="feedback" placeholder="Share details..." required className="bg-background rounded-none border-muted min-h-[120px]" />
-                      </div>
-                      <Button type="submit" className="w-full bg-primary text-primary-foreground font-bold uppercase rounded-none h-12" disabled={loading}>
-                        {loading ? <Loader2 className="h-5 w-5 animate-spin mr-2" /> : <MessageSquare className="h-5 w-5 mr-2" />}
-                        Transmit Feedback
-                      </Button>
-                    </form>
+                    ) : (
+                      <form onSubmit={handleSubmitReview} className="space-y-4">
+                        <div className="space-y-2">
+                          <Label className="text-[10px] font-bold uppercase tracking-widest">Full Name</Label>
+                          <Input name="name" placeholder="John Smith" required className="bg-background rounded-none border-muted" />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-[10px] font-bold uppercase tracking-widest">Professional Role</Label>
+                          <Input name="role" placeholder="Project Lead" required className="bg-background rounded-none border-muted" />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-[10px] font-bold uppercase tracking-widest">Rating (1-5)</Label>
+                          <div className="flex gap-2 text-primary">
+                            {[1, 2, 3, 4, 5].map((s) => (
+                              <button 
+                                key={s} 
+                                type="button" 
+                                onClick={() => setRating(s)}
+                                className={`transition-transform hover:scale-125 ${rating >= s ? 'fill-primary' : 'text-muted opacity-50'}`}
+                              >
+                                <Star className={`h-6 w-6 ${rating >= s ? 'fill-current' : ''}`} />
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-[10px] font-bold uppercase tracking-widest">Project Feedback</Label>
+                          <Textarea name="feedback" placeholder="Describe structural performance..." required className="bg-background rounded-none border-muted min-h-[120px]" />
+                        </div>
+                        <Button type="submit" className="w-full bg-primary text-primary-foreground font-bold uppercase rounded-none h-12 yellow-glow" disabled={loading}>
+                          {loading ? <Loader2 className="h-5 w-5 animate-spin mr-2" /> : <MessageSquare className="h-5 w-5 mr-2" />}
+                          Dispatch Feedback
+                        </Button>
+                      </form>
+                    )}
                   </CardContent>
                 </Card>
               </div>
@@ -116,7 +151,7 @@ export default function ReviewsPage() {
                   <div className="flex justify-center py-12"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div>
                 ) : reviews?.length === 0 ? (
                   <div className="bg-card border-2 border-muted p-12 text-center uppercase font-bold tracking-widest text-muted-foreground">
-                    No public client intel registered.
+                    No public client intel registered at this time.
                   </div>
                 ) : (
                   reviews?.map((review) => (
