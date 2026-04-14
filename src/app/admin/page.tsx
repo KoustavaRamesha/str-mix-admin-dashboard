@@ -34,6 +34,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useFirestore, useCollection, useMemoFirebase, useUser, useDoc } from "@/firebase"
 import { collection, query, orderBy, limit, doc } from "firebase/firestore"
+import { isApprovedReview, isPendingReview } from "@/lib/review-status"
 
 export default function AdminDashboard() {
   const [lastRefresh, setLastRefresh] = useState<string>("")
@@ -65,7 +66,8 @@ export default function AdminDashboard() {
   const visitorCount = settings?.visitorCount || 0;
   const publishedCount = posts?.filter(p => p.status === 'published').length || 0;
   const draftCount = posts?.filter(p => p.status === 'draft').length || 0;
-  const pendingReviewsCount = reviews?.length || 0;
+  const pendingReviewsCount = reviews?.filter(isPendingReview).length || 0;
+  const approvedReviews = reviews?.filter(isApprovedReview) || [];
   const openTicketsCount = tickets?.filter(t => t.status === 'open').length || 0;
   const urgentTicketsCount = tickets?.filter(t => t.priority === 'urgent' && t.status === 'open').length || 0;
 
@@ -77,15 +79,15 @@ export default function AdminDashboard() {
   ]
 
   const ratingData = [
-    { stars: '5 Stars', count: reviews?.filter(r => r.rating === 5).length || 0, color: 'hsl(var(--primary))' },
-    { stars: '4 Stars', count: reviews?.filter(r => r.rating === 4).length || 0, color: 'hsl(var(--primary))' },
-    { stars: '3 Stars', count: reviews?.filter(r => r.rating === 3).length || 0, color: '#71717a' },
-    { stars: '2 Stars', count: reviews?.filter(r => r.rating === 2).length || 0, color: '#71717a' },
-    { stars: '1 Star', count: reviews?.filter(r => r.rating === 1).length || 0, color: '#ef4444' },
+    { stars: '5 Stars', count: approvedReviews.filter(r => r.rating === 5).length || 0, color: 'hsl(var(--primary))' },
+    { stars: '4 Stars', count: approvedReviews.filter(r => r.rating === 4).length || 0, color: 'hsl(var(--primary))' },
+    { stars: '3 Stars', count: approvedReviews.filter(r => r.rating === 3).length || 0, color: '#71717a' },
+    { stars: '2 Stars', count: approvedReviews.filter(r => r.rating === 2).length || 0, color: '#71717a' },
+    { stars: '1 Star', count: approvedReviews.filter(r => r.rating === 1).length || 0, color: '#ef4444' },
   ]
 
-  const averageRating = reviews && reviews.length > 0 
-    ? (reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length).toFixed(1)
+  const averageRating = approvedReviews.length > 0
+    ? (approvedReviews.reduce((acc, r) => acc + r.rating, 0) / approvedReviews.length).toFixed(1)
     : "0.0";
 
   return (

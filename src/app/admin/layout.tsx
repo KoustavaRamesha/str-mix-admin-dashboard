@@ -42,6 +42,7 @@ import { useUser, useAuth, useFirestore, useDoc, useMemoFirebase, useCollection 
 import { signOut } from "firebase/auth"
 import { doc, collection } from "firebase/firestore"
 import { MediaUploadProvider, useMediaUpload } from "@/context/MediaUploadContext"
+import { isPendingReview } from "@/lib/review-status"
 
 const adminNav = [
   { name: "Overview", href: "/admin", icon: LayoutDashboard },
@@ -120,7 +121,7 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
     return collection(db, 'admin_reviews');
   }, [db, canQueryAdminCollections]);
   const { data: reviews } = useCollection(reviewsQuery);
-  const pendingReviewsCount = reviews?.length || 0;
+  const pendingReviewsCount = reviews?.filter(isPendingReview).length || 0;
 
   React.useEffect(() => {
     if (!isUserLoading && !user) {

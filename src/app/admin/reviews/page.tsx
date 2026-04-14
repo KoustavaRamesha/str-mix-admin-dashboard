@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { generateReviewSummary } from "@/ai/flows/admin-review-summary-generation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
@@ -25,19 +25,35 @@ import {
   Search,
   Settings as SettingsIcon,
   ToggleLeft,
-  Filter
+  Filter,
+  Clock,
+  ShieldCheck,
+  Undo2
 } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
 import { useFirestore, useCollection, useMemoFirebase, setDocumentNonBlocking, deleteDocumentNonBlocking, useUser } from "@/firebase"
 import { collection, doc } from "firebase/firestore"
+import { getStoredAdminGeminiApiKey } from "@/lib/admin-ai-key"
+import { isPendingReview, isApprovedReview, getReviewStatus } from "@/lib/review-status"
+import { useToast } from "@/hooks/use-toast"
+
+type TabValue = 'pending' | 'approved';
 
 export default function ReviewModeration() {
   const db = useFirestore()
   const { user } = useUser()
+  const { toast } = useToast()
   const [selected, setSelected] = useState<string[]>([])
   const [aiSummary, setAiSummary] = useState<string | null>(null)
   const [loadingAi, setLoadingAi] = useState(false)
+  const [geminiApiKey, setGeminiApiKey] = useState("")
+  const [activeTab, setActiveTab] = useState<TabValue>('pending')
+  const [searchQuery, setSearchQuery] = useState("")
+
+  useEffect(() => {
+    setGeminiApiKey(getStoredAdminGeminiApiKey())
+  }, [])
 
   const reviewsQuery = useMemoFirebase(() => {
     if (!user) return null;
@@ -46,23 +62,76 @@ export default function ReviewModeration() {
 
   const { data: reviews, isLoading: reviewsLoading } = useCollection(reviewsQuery);
 
+  // Split reviews into pending and approved
+  const pendingReviews = reviews?.filter(isPendingReview) || [];
+  const approvedReviews = reviews?.filter(isApprovedReview) || [];
+  const rejectedReviews = reviews?.filter(r => getReviewStatus(r.status) === 'rejected') || [];
+
+  // Get the active tab's reviews
+  const getFilteredReviews = () => {
+    const source = activeTab === 'pending' ? pendingReviews : approvedReviews;
+    if (!searchQuery.trim()) return source;
+    const q = searchQuery.toLowerCase();
+    return source.filter(r => 
+      r.authorName?.toLowerCase().includes(q) || 
+      r.body?.toLowerCase().includes(q) ||
+      r.professionalRole?.toLowerCase().includes(q)
+    );
+  };
+
+  const filteredReviews = getFilteredReviews();
+
   const handleStatusChange = (review: any, status: string) => {
     const adminRef = doc(db, 'admin_reviews', review.id);
-    const updatedReview = { ...review, status, updatedAt: new Date().toISOString() };
+    // Only write the data fields, not the Firestore id
+    const { id, ...reviewData } = review;
+    const updatedReview = { ...reviewData, status, updatedAt: new Date().toISOString() };
     
     setDocumentNonBlocking(adminRef, updatedReview, { merge: true });
 
     if (status === 'approved') {
       const publicRef = doc(db, 'published_reviews', review.id);
       setDocumentNonBlocking(publicRef, updatedReview, { merge: true });
+      toast({
+        title: "Review Authorized",
+        description: `${review.authorName}'s review is now publicly visible.`,
+      });
+    } else if (status === 'rejected') {
+      // Remove from published if it was previously approved
+      deleteDocumentNonBlocking(doc(db, 'published_reviews', review.id));
+      toast({
+        title: "Review Rejected",
+        description: `${review.authorName}'s review has been rejected.`,
+      });
     }
+
+    // Clear selection for this review
+    setSelected(prev => prev.filter(id => id !== review.id));
+  }
+
+  const handleRevokeApproval = (review: any) => {
+    const adminRef = doc(db, 'admin_reviews', review.id);
+    const { id, ...reviewData } = review;
+    const updatedReview = { ...reviewData, status: 'pending', updatedAt: new Date().toISOString() };
+    
+    setDocumentNonBlocking(adminRef, updatedReview, { merge: true });
+    // Remove from published reviews
+    deleteDocumentNonBlocking(doc(db, 'published_reviews', review.id));
+    toast({
+      title: "Approval Revoked",
+      description: `${review.authorName}'s review moved back to pending.`,
+    });
   }
 
   const handleBulkApprove = () => {
     if (!reviews) return;
-    const selectedReviews = reviews.filter(r => selected.includes(r.id));
+    const selectedReviews = pendingReviews.filter(r => selected.includes(r.id));
     selectedReviews.forEach(r => handleStatusChange(r, 'approved'));
     setSelected([]);
+    toast({
+      title: "Bulk Approved",
+      description: `${selectedReviews.length} reviews authorized and published.`,
+    });
   }
 
   const handleGenerateSummary = async () => {
@@ -70,7 +139,8 @@ export default function ReviewModeration() {
     setLoadingAi(true)
     try {
       const result = await generateReviewSummary({ 
-        reviews: reviews.map(r => r.body) 
+        reviews: reviews.map(r => r.body),
+        apiKey: geminiApiKey || undefined,
       })
       setAiSummary(result.summary)
     } finally {
@@ -78,9 +148,21 @@ export default function ReviewModeration() {
     }
   }
 
-  const handleDelete = (reviewId: string) => {
-    deleteDocumentNonBlocking(doc(db, 'admin_reviews', reviewId));
-    deleteDocumentNonBlocking(doc(db, 'published_reviews', reviewId));
+  const handleDelete = (review: any) => {
+    deleteDocumentNonBlocking(doc(db, 'admin_reviews', review.id));
+    deleteDocumentNonBlocking(doc(db, 'published_reviews', review.id));
+    setSelected(prev => prev.filter(id => id !== review.id));
+    toast({
+      title: "Review Deleted",
+      description: `${review.authorName}'s review permanently removed.`,
+    });
+  }
+
+  // Clear selections when switching tabs
+  const switchTab = (tab: TabValue) => {
+    setActiveTab(tab);
+    setSelected([]);
+    setSearchQuery("");
   }
 
   return (
@@ -127,16 +209,98 @@ export default function ReviewModeration() {
         </Card>
       )}
 
+      {/* Status Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card className="bg-card border-2 border-yellow-500/30 hover:border-yellow-500/60 transition-colors cursor-pointer" onClick={() => switchTab('pending')}>
+          <CardContent className="p-4 flex items-center gap-4">
+            <div className="h-10 w-10 bg-yellow-500/10 border border-yellow-500/30 flex items-center justify-center">
+              <Clock className="h-5 w-5 text-yellow-500" />
+            </div>
+            <div>
+              <p className="text-2xl font-headline font-bold">{pendingReviews.length}</p>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-yellow-500">Pending Review</p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="bg-card border-2 border-green-500/30 hover:border-green-500/60 transition-colors cursor-pointer" onClick={() => switchTab('approved')}>
+          <CardContent className="p-4 flex items-center gap-4">
+            <div className="h-10 w-10 bg-green-500/10 border border-green-500/30 flex items-center justify-center">
+              <ShieldCheck className="h-5 w-5 text-green-500" />
+            </div>
+            <div>
+              <p className="text-2xl font-headline font-bold">{approvedReviews.length}</p>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-green-500">Authorized</p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="bg-card border-2 border-red-500/30">
+          <CardContent className="p-4 flex items-center gap-4">
+            <div className="h-10 w-10 bg-red-500/10 border border-red-500/30 flex items-center justify-center">
+              <XCircle className="h-5 w-5 text-red-500" />
+            </div>
+            <div>
+              <p className="text-2xl font-headline font-bold">{rejectedReviews.length}</p>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-red-500">Rejected</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         <div className="lg:col-span-3 space-y-4">
+          {/* Tab Navigation */}
+          <div className="flex border-b-2 border-muted">
+            <button
+              onClick={() => switchTab('pending')}
+              className={`px-6 py-3 text-[10px] font-bold uppercase tracking-widest transition-all relative ${
+                activeTab === 'pending'
+                  ? 'text-yellow-500 border-b-2 border-yellow-500 -mb-[2px]'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              <span className="flex items-center gap-2">
+                <Clock className="h-3 w-3" />
+                Pending Reviews
+                {pendingReviews.length > 0 && (
+                  <Badge variant="secondary" className="bg-yellow-500/20 text-yellow-500 rounded-none text-[9px] px-1.5 h-4 font-bold">
+                    {pendingReviews.length}
+                  </Badge>
+                )}
+              </span>
+            </button>
+            <button
+              onClick={() => switchTab('approved')}
+              className={`px-6 py-3 text-[10px] font-bold uppercase tracking-widest transition-all relative ${
+                activeTab === 'approved'
+                  ? 'text-green-500 border-b-2 border-green-500 -mb-[2px]'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              <span className="flex items-center gap-2">
+                <ShieldCheck className="h-3 w-3" />
+                Authorized Reviews
+                {approvedReviews.length > 0 && (
+                  <Badge variant="secondary" className="bg-green-500/20 text-green-500 rounded-none text-[9px] px-1.5 h-4 font-bold">
+                    {approvedReviews.length}
+                  </Badge>
+                )}
+              </span>
+            </button>
+          </div>
+
           <Card className="bg-card border-2 border-muted overflow-hidden">
             <div className="p-4 border-b-2 border-muted flex flex-col md:flex-row gap-4 items-center justify-between">
               <div className="flex items-center gap-4 flex-1">
                 <div className="relative w-64">
                   <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
-                  <Input placeholder="Search reviews..." className="pl-8 h-8 rounded-none bg-background border-muted text-[10px]" />
+                  <Input 
+                    placeholder="Search reviews..." 
+                    className="pl-8 h-8 rounded-none bg-background border-muted text-[10px]"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
                 </div>
-                {selected.length > 0 && (
+                {activeTab === 'pending' && selected.length > 0 && (
                   <div className="flex items-center gap-2 animate-in fade-in slide-in-from-left-2">
                     <span className="text-[10px] font-bold uppercase text-primary">{selected.length} Selected</span>
                     <Button size="sm" className="h-7 text-[9px] uppercase font-bold rounded-none" onClick={handleBulkApprove}>Approve All</Button>
@@ -144,37 +308,60 @@ export default function ReviewModeration() {
                 )}
               </div>
               <div className="flex gap-2">
-                <Button variant="ghost" size="sm" className="h-8 rounded-none text-[10px] font-bold uppercase"><Filter className="h-3 w-3 mr-1" /> Sort</Button>
+                <span className="text-[10px] font-bold uppercase text-muted-foreground flex items-center gap-1">
+                  {filteredReviews.length} {activeTab === 'pending' ? 'pending' : 'authorized'}
+                </span>
               </div>
             </div>
             {reviewsLoading ? (
               <div className="p-12 text-center"><Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" /></div>
+            ) : filteredReviews.length === 0 ? (
+              <div className="p-12 text-center space-y-3">
+                <div className="h-12 w-12 mx-auto bg-muted/30 border border-muted flex items-center justify-center">
+                  {activeTab === 'pending' ? (
+                    <CheckCircle className="h-6 w-6 text-green-500" />
+                  ) : (
+                    <ShieldCheck className="h-6 w-6 text-muted-foreground" />
+                  )}
+                </div>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                  {activeTab === 'pending' 
+                    ? 'All reviews have been moderated. No pending actions.' 
+                    : 'No authorized reviews yet. Approve pending reviews to see them here.'}
+                </p>
+              </div>
             ) : (
               <Table>
                 <TableHeader className="bg-muted/30">
                   <TableRow>
-                    <TableHead className="w-[40px]"><Checkbox disabled /></TableHead>
+                    {activeTab === 'pending' && (
+                      <TableHead className="w-[40px]"><Checkbox disabled /></TableHead>
+                    )}
                     <TableHead className="uppercase text-[10px] font-bold tracking-widest">Author</TableHead>
                     <TableHead className="uppercase text-[10px] font-bold tracking-widest">Content</TableHead>
                     <TableHead className="uppercase text-[10px] font-bold tracking-widest">Rating</TableHead>
+                    <TableHead className="uppercase text-[10px] font-bold tracking-widest">Status</TableHead>
                     <TableHead className="uppercase text-[10px] font-bold tracking-widest text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {reviews?.map((review) => (
+                  {filteredReviews.map((review) => (
                     <TableRow key={review.id} className="hover:bg-muted/10 transition-colors">
-                      <TableCell>
-                        <Checkbox 
-                          checked={selected.includes(review.id)} 
-                          onCheckedChange={(checked) => {
-                            if (checked) setSelected([...selected, review.id])
-                            else setSelected(selected.filter(id => id !== review.id))
-                          }}
-                        />
-                      </TableCell>
+                      {activeTab === 'pending' && (
+                        <TableCell>
+                          <Checkbox 
+                            checked={selected.includes(review.id)} 
+                            onCheckedChange={(checked) => {
+                              if (checked) setSelected([...selected, review.id])
+                              else setSelected(selected.filter(id => id !== review.id))
+                            }}
+                          />
+                        </TableCell>
+                      )}
                       <TableCell>
                         <div className="flex flex-col">
                           <span className="font-bold text-xs uppercase">{review.authorName}</span>
+                          <span className="text-[8px] text-muted-foreground font-bold uppercase">{review.professionalRole}</span>
                           <span className="text-[8px] text-muted-foreground font-bold uppercase">{new Date(review.createdAt).toLocaleDateString()}</span>
                         </div>
                       </TableCell>
@@ -188,29 +375,57 @@ export default function ReviewModeration() {
                           ))}
                         </div>
                       </TableCell>
+                      <TableCell>
+                        {activeTab === 'pending' ? (
+                          <Badge variant="outline" className="rounded-none text-[8px] font-bold uppercase border-yellow-500/50 text-yellow-500 bg-yellow-500/10">
+                            <Clock className="h-2.5 w-2.5 mr-1" /> Pending
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline" className="rounded-none text-[8px] font-bold uppercase border-green-500/50 text-green-500 bg-green-500/10">
+                            <CheckCircle className="h-2.5 w-2.5 mr-1" /> Authorized
+                          </Badge>
+                        )}
+                      </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-1">
-                          <Button 
-                            size="icon" 
-                            variant="ghost" 
-                            className="h-7 w-7 text-green-500 hover:bg-green-500/10" 
-                            onClick={() => handleStatusChange(review, 'approved')}
-                          >
-                            <CheckCircle className="h-3 w-3" />
-                          </Button>
-                          <Button 
-                            size="icon" 
-                            variant="ghost" 
-                            className="h-7 w-7 text-red-500 hover:bg-red-500/10" 
-                            onClick={() => handleStatusChange(review, 'rejected')}
-                          >
-                            <XCircle className="h-3 w-3" />
-                          </Button>
+                          {activeTab === 'pending' ? (
+                            <>
+                              <Button 
+                                size="icon" 
+                                variant="ghost" 
+                                className="h-7 w-7 text-green-500 hover:bg-green-500/10" 
+                                onClick={() => handleStatusChange(review, 'approved')}
+                                title="Approve"
+                              >
+                                <CheckCircle className="h-3 w-3" />
+                              </Button>
+                              <Button 
+                                size="icon" 
+                                variant="ghost" 
+                                className="h-7 w-7 text-red-500 hover:bg-red-500/10" 
+                                onClick={() => handleStatusChange(review, 'rejected')}
+                                title="Reject"
+                              >
+                                <XCircle className="h-3 w-3" />
+                              </Button>
+                            </>
+                          ) : (
+                            <Button 
+                              size="icon" 
+                              variant="ghost" 
+                              className="h-7 w-7 text-yellow-500 hover:bg-yellow-500/10"
+                              onClick={() => handleRevokeApproval(review)}
+                              title="Revoke approval"
+                            >
+                              <Undo2 className="h-3 w-3" />
+                            </Button>
+                          )}
                           <Button 
                             size="icon" 
                             variant="ghost" 
                             className="h-7 w-7 text-destructive hover:bg-destructive/10"
-                            onClick={() => handleDelete(review.id)}
+                            onClick={() => handleDelete(review)}
+                            title="Delete permanently"
                           >
                             <Trash2 className="h-3 w-3" />
                           </Button>

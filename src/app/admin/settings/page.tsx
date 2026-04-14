@@ -22,11 +22,14 @@ import { useToast } from "@/hooks/use-toast"
 import { doc } from 'firebase/firestore'
 import { useFirestore, useDoc, useMemoFirebase, setDocumentNonBlocking } from '@/firebase'
 import { useState, useEffect } from "react"
+import { getStoredAdminGeminiApiKey, maskAdminGeminiApiKey, setStoredAdminGeminiApiKey } from "@/lib/admin-ai-key"
 
 export default function SystemSettings() {
   const db = useFirestore()
   const { toast } = useToast()
   const [saving, setSaving] = useState(false)
+  const [savingAiKey, setSavingAiKey] = useState(false)
+  const [geminiApiKey, setGeminiApiKey] = useState("")
 
   const settingsRef = useMemoFirebase(() => doc(db, 'settings', 'global'), [db]);
   const { data: settings, isLoading } = useDoc(settingsRef);
@@ -55,6 +58,10 @@ export default function SystemSettings() {
     }
   }, [settings])
 
+  useEffect(() => {
+    setGeminiApiKey(getStoredAdminGeminiApiKey())
+  }, [])
+
   const handleSave = () => {
     setSaving(true)
     
@@ -77,6 +84,20 @@ export default function SystemSettings() {
 
     // Brief delay to simulate the write cycle for the UI
     setTimeout(() => setSaving(false), 600);
+  }
+
+  const handleSaveAiKey = () => {
+    setSavingAiKey(true)
+    setStoredAdminGeminiApiKey(geminiApiKey)
+
+    toast({
+      title: geminiApiKey.trim() ? "Gemini Key Saved" : "Gemini Key Removed",
+      description: geminiApiKey.trim()
+        ? "This browser will use your custom Gemini API key for admin AI tools."
+        : "Admin AI tools will fall back to the server environment key.",
+    })
+
+    setTimeout(() => setSavingAiKey(false), 400)
   }
 
   if (isLoading) {
@@ -133,6 +154,50 @@ export default function SystemSettings() {
                     className="bg-background rounded-none border-muted h-10 text-xs font-bold" 
                   />
                 </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-card border-2 border-muted">
+            <CardHeader className="border-b bg-muted/5">
+              <CardTitle className="text-sm font-bold uppercase tracking-widest flex items-center gap-2">
+                <SettingsIcon className="h-4 w-4 text-primary" />
+                AI Provider
+              </CardTitle>
+              <CardDescription className="text-[10px] uppercase">Browser-local Gemini key for admin drafting tools</CardDescription>
+            </CardHeader>
+            <CardContent className="p-6 space-y-6">
+              <div className="space-y-2">
+                <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Gemini API Key</Label>
+                <Input
+                  type="password"
+                  value={geminiApiKey}
+                  onChange={(e) => setGeminiApiKey(e.target.value)}
+                  placeholder="Paste your Google AI Studio key"
+                  className="bg-background rounded-none border-muted h-10 text-xs font-mono"
+                />
+                <p className="text-[10px] uppercase text-muted-foreground">
+                  Stored only in this browser. Current status: {geminiApiKey ? maskAdminGeminiApiKey(geminiApiKey) : 'No local key saved'}.
+                </p>
+              </div>
+              <div className="flex gap-3">
+                <Button
+                  type="button"
+                  onClick={handleSaveAiKey}
+                  disabled={savingAiKey}
+                  className="bg-primary text-primary-foreground font-bold uppercase rounded-none text-[10px] h-10"
+                >
+                  {savingAiKey ? <Loader2 className="h-3 w-3 animate-spin mr-2" /> : <Save className="h-3 w-3 mr-2" />}
+                  Save AI Key
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setGeminiApiKey("")}
+                  className="rounded-none text-[10px] font-bold uppercase border-muted h-10"
+                >
+                  Clear Field
+                </Button>
               </div>
             </CardContent>
           </Card>

@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import Link from "next/link"
+import { useEffect, useState } from "react"
 import { adminDraftBlogContentGeneration } from "@/ai/flows/admin-draft-blog-content-generation-flow"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -35,14 +36,20 @@ import {
 import Image from "next/image"
 import { useFirestore, useCollection, useMemoFirebase, useUser, setDocumentNonBlocking, deleteDocumentNonBlocking } from "@/firebase"
 import { collection, doc } from "firebase/firestore"
+import { getStoredAdminGeminiApiKey, maskAdminGeminiApiKey } from "@/lib/admin-ai-key"
 
 export default function BlogManagement() {
   const [view, setView] = useState<'list' | 'edit'>('list')
   const [topic, setTopic] = useState("")
   const [loadingAi, setLoadingAi] = useState(false)
   const [draft, setDraft] = useState<any>(null)
+  const [geminiApiKey, setGeminiApiKey] = useState("")
   const db = useFirestore()
   const { user } = useUser()
+
+  useEffect(() => {
+    setGeminiApiKey(getStoredAdminGeminiApiKey())
+  }, [])
 
   const postsQuery = useMemoFirebase(() => {
     if (!user) return null;
@@ -61,7 +68,10 @@ export default function BlogManagement() {
     if (!topic) return
     setLoadingAi(true)
     try {
-      const result = await adminDraftBlogContentGeneration({ topic })
+      const result = await adminDraftBlogContentGeneration({
+        topic,
+        apiKey: geminiApiKey || undefined,
+      })
       setDraft({
         title: result.title,
         body: result.body,
@@ -168,6 +178,19 @@ export default function BlogManagement() {
                   onChange={(e) => setTopic(e.target.value)}
                   className="bg-background rounded-none border-muted h-9 text-xs"
                 />
+              </div>
+              <div className="rounded-none border border-muted bg-muted/10 p-3 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                {geminiApiKey ? (
+                  <span>Using saved Gemini key: {maskAdminGeminiApiKey(geminiApiKey)}</span>
+                ) : (
+                  <span>
+                    No custom Gemini key saved. Add one in{" "}
+                    <Link href="/admin/settings" className="text-primary underline underline-offset-4">
+                      Settings
+                    </Link>
+                    {" "}or use the server key.
+                  </span>
+                )}
               </div>
               <div className="ai-btn-wrapper w-full">
                 <button
