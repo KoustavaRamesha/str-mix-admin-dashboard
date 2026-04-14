@@ -45,13 +45,7 @@ export function initializeFirebase() {
     if (getApps().length > 0) {
       appInstance = getApp();
     } else {
-      try {
-        // Attempt to initialize via Firebase App Hosting environment variables
-        appInstance = initializeApp();
-      } catch (e) {
-        // Fallback to local config object
-        appInstance = initializeApp(firebaseConfig);
-      }
+      appInstance = initializeApp(firebaseConfig);
     }
   }
 

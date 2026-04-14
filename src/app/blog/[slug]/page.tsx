@@ -3,8 +3,7 @@
 
 import Image from "next/image"
 import Link from "next/link"
-import { Navbar } from "@/components/navbar"
-import { Footer } from "@/components/footer"
+
 import { Calendar, User, ChevronLeft, Share2, Tag } from "lucide-react"
 import { ProgressLoader } from "@/components/ui/progress-loader"
 import { Button } from "@/components/ui/button"
@@ -29,36 +28,27 @@ export default function BlogPostPage({ params }: { params: Promise<{ slug: strin
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex flex-col">
-        <Navbar />
-        <main className="flex-grow flex items-center justify-center">
-          <ProgressLoader label="Loading post" />
-        </main>
-        <Footer />
+      <div className="flex-grow flex items-center justify-center py-24">
+        <ProgressLoader label="Loading post" />
       </div>
     )
   }
 
   if (!post) {
     return (
-      <div className="min-h-screen flex flex-col">
-        <Navbar />
-        <main className="flex-grow flex flex-col items-center justify-center py-24 industrial-grid">
-          <h1 className="text-4xl font-headline font-bold uppercase mb-4 text-primary">Post Not Found</h1>
-          <p className="text-muted-foreground mb-8">The requested industrial intel has been moved or deleted.</p>
-          <Button asChild variant="outline" className="rounded-none font-bold uppercase">
-            <Link href="/blog">Return to Newsfeed</Link>
-          </Button>
-        </main>
-        <Footer />
+      <div className="flex-grow flex flex-col items-center justify-center py-24 industrial-grid">
+        <h1 className="text-4xl font-headline font-bold uppercase mb-4 text-primary">Post Not Found</h1>
+        <p className="text-muted-foreground mb-8">The requested industrial intel has been moved or deleted.</p>
+        <Button asChild variant="outline" className="rounded-none font-bold uppercase">
+          <Link href="/blog">Return to Newsfeed</Link>
+        </Button>
       </div>
     )
   }
 
   return (
-    <div className="flex flex-col min-h-screen">
-      <Navbar />
-      <main className="flex-grow py-24 industrial-grid">
+    <>
+      <div className="py-24 industrial-grid">
         <div className="container mx-auto px-4 max-w-4xl">
           <Link href="/blog" className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-primary hover:underline mb-8">
             <ChevronLeft className="h-4 w-4" /> Back to Newsfeed
@@ -125,8 +115,7 @@ export default function BlogPostPage({ params }: { params: Promise<{ slug: strin
             </div>
           </article>
         </div>
-      </main>
-      <Footer />
-    </div>
+      </div>
+    </>
   )
 }

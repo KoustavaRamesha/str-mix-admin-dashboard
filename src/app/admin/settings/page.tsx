@@ -14,7 +14,7 @@ import {
   Mail, 
   Save, 
   Database,
-  Loader,
+  Loader2,
   Users
 } from "lucide-react"
 import { Loader as LoaderComponent } from "@/components/loader"
@@ -30,6 +30,9 @@ export default function SystemSettings() {
 
   const settingsRef = useMemoFirebase(() => doc(db, 'settings', 'global'), [db]);
   const { data: settings, isLoading } = useDoc(settingsRef);
+
+  const statsRef = useMemoFirebase(() => doc(db, 'public_stats', 'counters'), [db]);
+  const { data: publicStats } = useDoc(statsRef);
 
   const [localSettings, setLocalSettings] = useState({
     siteName: "STR mix Digital",
@@ -56,7 +59,15 @@ export default function SystemSettings() {
     setSaving(true)
     
     // Commit to Firestore using non-blocking update
-    setDocumentNonBlocking(settingsRef, localSettings, { merge: true });
+    setDocumentNonBlocking(settingsRef, localSettings as Record<string, unknown>, { merge: true });
+    
+    // Also sync maintenance mode to the public-readable document
+    // so the MaintenanceGuard can read it without admin auth
+    setDocumentNonBlocking(
+      doc(db, 'public_stats', 'maintenance'),
+      { maintenanceMode: localSettings.maintenanceMode } as Record<string, unknown>,
+      { merge: true }
+    );
     
     // Provide immediate UI feedback
     toast({
@@ -212,7 +223,7 @@ export default function SystemSettings() {
               <div className="space-y-1">
                 <p className="text-[10px] font-bold uppercase text-muted-foreground">Total Visitors</p>
                 <div className="text-3xl font-headline font-bold">
-                  {(settings?.visitorCount || 0).toLocaleString()}
+                  {(publicStats?.visitorCount || 0).toLocaleString()}
                 </div>
                 <p className="text-[8px] text-muted-foreground uppercase mt-1 font-bold">Cumulative Session Count</p>
               </div>

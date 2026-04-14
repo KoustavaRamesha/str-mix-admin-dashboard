@@ -47,6 +47,9 @@ const adminDraftBlogContentGenerationFlow = ai.defineFlow(
   },
   async input => {
     const {output} = await prompt(input);
-    return output!;
+    if (!output) {
+      throw new Error('AI model returned no output for blog content generation. Please try again.');
+    }
+    return output;
   }
 );

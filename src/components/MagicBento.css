@@ -1,0 +1,110 @@
+/* MagicBento.css */
+.bento-section {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+  position: relative;
+  z-index: 10;
+}
+
+@media (max-width: 1024px) {
+  .bento-section {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .bento-section {
+    grid-template-columns: 1fr;
+    padding: 1rem;
+  }
+}
+
+/* Card base */
+.magic-bento-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 250px;
+  border-radius: 1.5rem;
+  padding: 2rem;
+  background-color: #060010;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  color: white;
+  z-index: 10;
+  transform-style: preserve-3d;
+  transition: transform 0.3s ease;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+/* Base text */
+.magic-bento-card__header {
+  margin-bottom: auto;
+  pointer-events: none;
+}
+
+.magic-bento-card__label {
+  display: inline-block;
+  padding: 0.3rem 0.8rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  backdrop-filter: blur(4px);
+}
+
+.magic-bento-card__content {
+  pointer-events: none;
+}
+
+.magic-bento-card__title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  margin-top: 1.5rem;
+}
+
+.magic-bento-card__description {
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.6);
+  margin: 0;
+}
+
+/* Text Autohide mechanics */
+.magic-bento-card--text-autohide .magic-bento-card__description {
+  opacity: 0;
+  transform: translateY(10px);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.magic-bento-card:hover .magic-bento-card__description {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Glow Borders based on JS CSS Custom Properties */
+.magic-bento-card--border-glow::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 2px;
+  background: radial-gradient(
+    var(--glow-radius, 300px) circle at var(--glow-x, 0) var(--glow-y, 0),
+    rgba(var(--glow-color, 132, 0, 255), var(--glow-intensity, 0)),
+    transparent 100%
+  );
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  z-index: 100;
+}

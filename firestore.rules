@@ -5,6 +5,7 @@ service cloud.firestore {
 
     /**
      * STR mix Digital Security Rules
+     * Last audited: 2026-04-13
      */
 
     // --- Helper Functions ---
@@ -40,11 +41,34 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == userId;
     }
 
+    // --- Data Validation Helpers ---
+
+    function isValidString(field, maxLen) {
+      return field is string && field.size() > 0 && field.size() <= maxLen;
+    }
+
+    function hasRequiredFields(fields) {
+      return request.resource.data.keys().hasAll(fields);
+    }
+
     // --- Collection Rules ---
 
+    // Global settings — only admins can read operational config
     match /settings/global {
-      allow read: if true;
+      allow read: if isAdmin();
       allow write: if isSuperAdmin();
+    }
+
+    // Public stats — separate doc for anonymous visitor counting
+    match /public_stats/counters {
+      allow read: if true;
+      allow write: if true;
+    }
+
+    // Public maintenance flag — readable by everyone, writable by admins
+    match /public_stats/maintenance {
+      allow read: if true;
+      allow write: if isAdmin();
     }
 
     match /users/{userId} {
@@ -86,9 +110,18 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    // Reviews submitted by public users — validated on create
     match /admin_reviews/{reviewId} {
       allow get, list: if isAdmin();
-      allow create: if true;
+      allow create: if
+        hasRequiredFields(['authorName', 'professionalRole', 'body', 'rating', 'status', 'createdAt'])
+        && isValidString(request.resource.data.authorName, 100)
+        && isValidString(request.resource.data.professionalRole, 100)
+        && isValidString(request.resource.data.body, 5000)
+        && request.resource.data.rating is int
+        && request.resource.data.rating >= 1
+        && request.resource.data.rating <= 5
+        && request.resource.data.status == 'pending';
       allow update, delete: if isAdmin();
     }
 
@@ -102,8 +135,15 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    // Support tickets — validated on create
     match /support_tickets/{ticketId} {
-      allow create: if true;
+      allow create: if
+        hasRequiredFields(['name', 'email', 'subject', 'body', 'status', 'createdAt'])
+        && isValidString(request.resource.data.name, 100)
+        && isValidString(request.resource.data.email, 254)
+        && isValidString(request.resource.data.subject, 200)
+        && isValidString(request.resource.data.body, 5000)
+        && request.resource.data.status == 'open';
       allow get, list: if isAdmin() || (isSignedIn() && resource.data.submittedById == request.auth.uid);
       allow update: if isAdmin() || (isSignedIn() && resource.data.submittedById == request.auth.uid);
       allow delete: if isAdmin();
@@ -111,7 +151,9 @@ service cloud.firestore {
 
     match /support_tickets/{ticketId}/replies/{replyId} {
       allow get, list: if isAdmin() || (isSignedIn() && resource.data.ticketSubmittedById == request.auth.uid);
-      allow create: if isAdmin() || (isSignedIn() && request.resource.data.ticketSubmittedById == request.auth.uid);
+      allow create: if isAdmin()
+        && hasRequiredFields(['ticketId', 'body', 'authorId', 'authorName', 'createdAt'])
+        && isValidString(request.resource.data.body, 5000);
       allow update, delete: if isAdmin();
     }
   }

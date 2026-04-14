@@ -17,19 +17,17 @@ export function AnalyticsTracker() {
       const hasVisited = sessionStorage.getItem('strmix_session_tracked');
       
       if (!hasVisited) {
-        const statsRef = doc(db, 'settings', 'global');
+        // Write to a dedicated public_stats document that has relaxed write rules
+        // instead of settings/global which requires isSuperAdmin()
+        const statsRef = doc(db, 'public_stats', 'counters');
         
         try {
-          // Increment the visitor count. Using updateDoc with increment is atomical.
-          // We use setDoc with merge: true as a fallback if the doc doesn't exist.
-          await updateDoc(statsRef, {
-            visitorCount: increment(1)
-          }).catch(async (err) => {
-            // If doc doesn't exist, initialize it
-            if (err.code === 'not-found') {
-              await setDoc(statsRef, { visitorCount: 1 }, { merge: true });
-            }
-          });
+          // Increment the visitor count atomically.
+          // Use setDoc with merge as a fallback if the doc doesn't exist.
+          await setDoc(statsRef, {
+            visitorCount: increment(1),
+            lastVisit: new Date().toISOString(),
+          }, { merge: true });
           
           sessionStorage.setItem('strmix_session_tracked', 'true');
         } catch (error) {

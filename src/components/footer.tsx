@@ -1,8 +1,16 @@
+"use client"
+
 import Link from "next/link"
 import Image from "next/image"
+import { usePathname } from "next/navigation"
 import { Facebook, Twitter, Linkedin, Instagram } from "lucide-react"
 
 export function Footer() {
+  const pathname = usePathname()
+  const isAdminPath = pathname?.startsWith('/admin')
+  
+  if (isAdminPath) return null
+
   return (
     <footer className="bg-card border-t-4 border-primary pt-24 pb-12">
       <div className="container mx-auto px-4">
@@ -67,17 +75,17 @@ export function Footer() {
               <div className="space-y-2">
                 <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Location</p>
                 <Link
-                  href="https://www.google.com/maps?q=12.842819,77.558976&entry=gps&g_ep=CAESBzI1LjEzLjYYACCIJyp-LDk0MjU5NTUxLDk0MjIzMjk5LDk0MjE2NDEzLDk0MjEyNDk2LDk0MjEyNjY2LDk0MjA3Mzk0LDk0MjA3NTA2LDk0MjA4NTA2LDk0MjE3NTIzLDk0MjE4NjUzLDk0MjI5ODM5LDQ3MDg0MzkzLDk0MjEzMjAwLDk0MjU4MzE5QgJJTg%3D%3D&skid=12b7e6c7-a79f-4284-9b93-26f644c62398&shorturl=1"
+                  href="https://maps.app.goo.gl/qK5gTSWCSer9FEZ1A"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-lg font-bold uppercase leading-tight hover:text-primary transition-colors"
                 >
-                  Bengaluru, Karnataka<br />12.842819, 77.558976
+                  Bengaluru, Karnataka<br />Sy.No.:104, Anjanapura Post
                 </Link>
               </div>
               <div className="space-y-2">
                 <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Contact</p>
-                <p className="text-lg font-bold uppercase leading-tight">(555) 012-3456<br />ops@strmix.digital</p>
+                <p className="text-lg font-bold uppercase leading-tight">+91 97414 99909<br />ops@strmix.digital</p>
               </div>
             </div>
           </div>

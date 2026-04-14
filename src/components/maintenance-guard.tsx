@@ -13,14 +13,16 @@ export function MaintenanceGuard({ children }: { children: React.ReactNode }) {
 
   const db = useFirestore();
 
-  const settingsRef = useMemoFirebase(() => {
+  // Read from public_stats collection which has public read access
+  // settings/global is now admin-only for reads
+  const maintenanceRef = useMemoFirebase(() => {
     if (!db) return null;
-    return doc(db, 'settings', 'global');
+    return doc(db, 'public_stats', 'maintenance');
   }, [db]);
 
-  const { data: settings, isLoading } = useDoc(settingsRef);
+  const { data: maintenanceData, isLoading } = useDoc(maintenanceRef);
 
-  const isMaintenanceMode = settings?.maintenanceMode === true;
+  const isMaintenanceMode = maintenanceData?.maintenanceMode === true;
 
   // If it's an admin path, we ALWAYS show the content (admins need to log in to fix it)
   if (isAdminPath) {

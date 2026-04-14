@@ -11,36 +11,39 @@
     --card-foreground: 0 0% 98%;
     --popover: 0 0% 9%;
     --popover-foreground: 0 0% 98%;
-    --primary: 45 100% 50%;
+    --primary: 60 100% 50%;
     --primary-foreground: 0 0% 7%;
     --secondary: 0 0% 15%;
     --secondary-foreground: 0 0% 98%;
     --muted: 0 0% 20%;
     --muted-foreground: 0 0% 65%;
-    --accent: 45 100% 50%;
+    --accent: 60 100% 50%;
     --accent-foreground: 0 0% 7%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
     --border: 0 0% 18%;
     --input: 0 0% 18%;
-    --ring: 45 100% 50%;
+    --ring: 60 100% 50%;
     --radius: 0rem;
-    --chart-1: 45 100% 50%;
+    --chart-1: 60 100% 50%;
     --chart-2: 0 0% 40%;
     --sidebar-background: 0 0% 5%;
     --sidebar-foreground: 0 0% 90%;
-    --sidebar-primary: 45 100% 50%;
+    --sidebar-primary: 60 100% 50%;
     --sidebar-primary-foreground: 0 0% 7%;
     --sidebar-accent: 0 0% 12%;
-    --sidebar-accent-foreground: 45 100% 50%;
+    --sidebar-accent-foreground: 60 100% 50%;
     --sidebar-border: 0 0% 12%;
-    --sidebar-ring: 45 100% 50%;
+    --sidebar-ring: 60 100% 50%;
   }
 }
 
 @layer base {
   * {
     @apply border-border;
+  }
+  html {
+    scroll-behavior: auto !important;
   }
   body {
     @apply bg-background text-foreground font-body;
@@ -51,12 +54,12 @@
 }
 
 .industrial-grid {
-  background-image: radial-gradient(circle at 2px 2px, rgba(255, 215, 0, 0.05) 1px, transparent 0);
+  background-image: radial-gradient(circle at 2px 2px, rgba(255, 255, 0, 0.05) 1px, transparent 0);
   background-size: 40px 40px;
 }
 
 .yellow-glow {
-  box-shadow: 0 0 40px rgba(255, 215, 0, 0.15);
+  box-shadow: 0 0 40px rgba(255, 255, 0, 0.15);
 }
 
 .hero-gradient {
@@ -271,7 +274,7 @@ section {
   --ai-padding: 4px;
   --ai-transition: 0.4s;
   --ai-button-color: #101010;
-  --ai-highlight-color-hue: 45deg;
+  --ai-highlight-color-hue: 60deg;
 
   user-select: none;
   position: relative;
@@ -410,4 +413,115 @@ section {
 .ai-btn:disabled {
   opacity: 0.7;
   cursor: not-allowed;
+}
+
+/* From Uiverse.io by Praashoo7 */ 
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-left: 2em;
+  padding-right: 2em;
+  padding-bottom: 0.4em;
+  background-color: #171717;
+  border-radius: 25px;
+  transition: .4s ease-in-out;
+}
+
+.form:hover {
+  transform: scale(1.05);
+  border: 1px solid black;
+}
+
+#heading {
+  text-align: center;
+  margin: 2em;
+  color: rgb(255, 255, 255);
+  font-size: 1.2em;
+}
+
+.field {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5em;
+  border-radius: 25px;
+  padding: 0.6em;
+  border: none;
+  outline: none;
+  color: white;
+  background-color: #171717;
+  box-shadow: inset 2px 5px 10px rgb(5, 5, 5);
+}
+
+.input-icon {
+  height: 1.3em;
+  width: 1.3em;
+  fill: white;
+}
+
+.input-field {
+  background: none;
+  border: none;
+  outline: none;
+  width: 100%;
+  color: #d3d3d3;
+}
+
+.form .btn {
+  display: flex;
+  justify-content: center;
+  flex-direction: row;
+  margin-top: 2.5em;
+}
+
+.button1 {
+  padding: 0.5em;
+  padding-left: 1.1em;
+  padding-right: 1.1em;
+  border-radius: 5px;
+  margin-right: 0.5em;
+  border: none;
+  outline: none;
+  transition: .4s ease-in-out;
+  background-color: #252525;
+  color: white;
+}
+
+.button1:hover {
+  background-color: black;
+  color: white;
+}
+
+.button2 {
+  padding: 0.5em;
+  padding-left: 2.3em;
+  padding-right: 2.3em;
+  border-radius: 5px;
+  border: none;
+  outline: none;
+  transition: .4s ease-in-out;
+  background-color: #252525;
+  color: white;
+}
+
+.button2:hover {
+  background-color: black;
+  color: white;
+}
+
+.button3 {
+  margin-bottom: 3em;
+  padding: 0.5em;
+  border-radius: 5px;
+  border: none;
+  outline: none;
+  transition: .4s ease-in-out;
+  background-color: #252525;
+  color: white;
+}
+
+.button3:hover {
+  background-color: red;
+  color: white;
 }

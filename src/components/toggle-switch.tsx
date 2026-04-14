@@ -14,10 +14,12 @@ interface ToggleSwitchProps {
 export function ToggleSwitch({
   checked = false,
   onChange,
-  id = 'toggleSwitch',
+  id,
   name,
   disabled = false,
 }: ToggleSwitchProps) {
+  const generatedId = React.useId()
+  const switchId = id || generatedId
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     onChange?.(e.target.checked)
   }
@@ -25,7 +27,7 @@ export function ToggleSwitch({
   return (
     <label className="switch">
       <input
-        id={id}
+        id={switchId}
         type="checkbox"
         checked={checked}
         onChange={handleChange}

@@ -3,7 +3,7 @@
   width: 10em;
   position: relative;
   height: 3.5em;
-  border: 3px ridge #ffd700;
+  border: 3px ridge hsl(var(--primary));
   outline: none;
   background-color: transparent;
   color: white;
@@ -44,5 +44,5 @@
 }
 
 .consultation-button:hover {
-  box-shadow: inset 0px 0px 25px #ffd700;
+  box-shadow: inset 0px 0px 25px hsl(var(--primary));
 }

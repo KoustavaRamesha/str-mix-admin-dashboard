@@ -31,8 +31,20 @@ import {
 } from "@/firebase"
 import { collection, query, orderBy, doc, DocumentData } from "firebase/firestore"
 
+interface TicketDocument extends DocumentData {
+  id: string;
+  subject: string;
+  name: string;
+  email: string;
+  phone?: string;
+  body: string;
+  status: 'open' | 'in-progress' | 'resolved';
+  createdAt: string;
+  submittedById?: string;
+}
+
 export default function TicketSystem() {
-  const [activeTicket, setActiveTicket] = useState<any>(null)
+  const [activeTicket, setActiveTicket] = useState<TicketDocument | null>(null)
   const [reply, setReply] = useState("")
   const [searchTerm, setSearchTerm] = useState("")
   
@@ -64,7 +76,7 @@ export default function TicketSystem() {
       ticketId: activeTicket.id,
       body: reply,
       authorId: user.uid,
-      authorName: user.displayName || user.email,
+      authorName: user.displayName || user.email || 'Admin',
       createdAt: new Date().toISOString(),
     }
 

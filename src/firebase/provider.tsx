@@ -78,7 +78,9 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
         setUserAuthState({ user: firebaseUser, isUserLoading: false, userError: null });
       },
       (error) => {
-        console.error("FirebaseProvider: onAuthStateChanged error:", error);
+        if (process.env.NODE_ENV === 'development') {
+          console.error("FirebaseProvider: onAuthStateChanged error:", error);
+        }
         setUserAuthState({ user: null, isUserLoading: false, userError: error });
       }
     );

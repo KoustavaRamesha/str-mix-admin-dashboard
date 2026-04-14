@@ -31,11 +31,13 @@ import {
 import { Button } from "@/components/ui/button"
 import { GradientButton } from "@/components/ui/gradient-button"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { useFirestore, useCollection, useMemoFirebase, useUser, useDoc } from "@/firebase"
 import { collection, query, orderBy, limit, doc } from "firebase/firestore"
 
 export default function AdminDashboard() {
   const [lastRefresh, setLastRefresh] = useState<string>("")
+  const router = useRouter()
   const db = useFirestore()
   const { user } = useUser()
 
@@ -70,13 +72,13 @@ export default function AdminDashboard() {
   const stats = [
     { label: "Site Visitors", value: visitorCount.toLocaleString(), icon: Users, trend: "Live Counter", color: "text-primary" },
     { label: "Blog Posts", value: `${publishedCount} / ${draftCount}`, icon: FileText, trend: "Published / Drafts", color: "text-blue-400" },
-    { label: "Pending Reviews", value: pendingReviewsCount.toString(), icon: Star, trend: "Awaiting Action", color: "text-yellow-500" },
+    { label: "Pending Reviews", value: pendingReviewsCount.toString(), icon: Star, trend: "Awaiting Action", color: "text-primary" },
     { label: "Open Tickets", value: openTicketsCount.toString(), icon: LifeBuoy, trend: `${urgentTicketsCount} Urgent`, color: "text-red-500" },
   ]
 
   const ratingData = [
-    { stars: '5 Stars', count: reviews?.filter(r => r.rating === 5).length || 0, color: '#FFD700' },
-    { stars: '4 Stars', count: reviews?.filter(r => r.rating === 4).length || 0, color: '#FFD700' },
+    { stars: '5 Stars', count: reviews?.filter(r => r.rating === 5).length || 0, color: 'hsl(var(--primary))' },
+    { stars: '4 Stars', count: reviews?.filter(r => r.rating === 4).length || 0, color: 'hsl(var(--primary))' },
     { stars: '3 Stars', count: reviews?.filter(r => r.rating === 3).length || 0, color: '#71717a' },
     { stars: '2 Stars', count: reviews?.filter(r => r.rating === 2).length || 0, color: '#71717a' },
     { stars: '1 Star', count: reviews?.filter(r => r.rating === 1).length || 0, color: '#ef4444' },
@@ -94,7 +96,7 @@ export default function AdminDashboard() {
           <p className="text-muted-foreground text-sm uppercase tracking-widest font-bold">Industrial Site Intelligence • v1.4.2</p>
         </div>
         <div className="flex flex-col items-end gap-3">
-          <GradientButton onClick={() => window.location.href = '/admin/blog'}>Create Content</GradientButton>
+          <GradientButton onClick={() => router.push('/admin/blog')}>Create Content</GradientButton>
           <div className="text-right">
             <p className="text-[10px] font-bold uppercase text-muted-foreground">Live Telemetry</p>
             <p className="text-xs font-mono">{lastRefresh || "--:--:--"}</p>
@@ -105,9 +107,9 @@ export default function AdminDashboard() {
       {/* Action Nudges */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         <Link href="/admin/reviews" className="block">
-          <div className="bg-yellow-500/10 border-2 border-yellow-500/50 p-4 flex items-center justify-between group cursor-pointer hover:bg-yellow-500/20 transition-all h-full">
+          <div className="bg-primary/10 border-2 border-primary/50 p-4 flex items-center justify-between group cursor-pointer hover:bg-primary/20 transition-all h-full">
             <div className="flex items-center gap-3">
-              <AlertCircle className="h-5 w-5 text-yellow-500" />
+              <AlertCircle className="h-5 w-5 text-primary" />
               <div>
                 <p className="text-xs font-bold uppercase">{pendingReviewsCount} Pending Reviews</p>
                 <p className="text-[10px] text-muted-foreground uppercase">Moderate recent client feedback</p>

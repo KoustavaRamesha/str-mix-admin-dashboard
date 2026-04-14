@@ -204,7 +204,9 @@ export function MediaUploadProvider({ children }: { children: React.ReactNode })
           return;
         }
 
-        console.error(`Upload error for ${file.name}:`, error);
+        if (process.env.NODE_ENV === 'development') {
+          console.error(`Upload error for ${file.name}:`, error);
+        }
         dispatch({ type: 'ERROR', id });
         delete activeTasks.current[id];
         delete lastUpdateRef.current[id];
@@ -296,7 +298,9 @@ export function MediaUploadProvider({ children }: { children: React.ReactNode })
           description: `${selectedFiles.length} file(s) entered the upload queue.`,
         });
       } catch (error: any) {
-        console.error('Upload initialisation failed:', error);
+        if (process.env.NODE_ENV === 'development') {
+          console.error('Upload initialisation failed:', error);
+        }
         toast({
           variant: 'destructive',
           title: 'Upload Initialisation Failed',
