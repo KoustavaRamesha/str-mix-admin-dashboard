@@ -15,6 +15,7 @@ const nextConfig: NextConfig = {
   },
   experimental: {
     optimizePackageImports: ['lucide-react', 'recharts', 'framer-motion', '@radix-ui/react-icons'],
+    serverExternalPackages: ['genkit', '@genkit-ai/google-genai', '@genkit-ai/firebase', 'uuid'],
   },
   images: {
     // Prevent DoS via unbounded cache growth (GHSA-3x4c-7xq6-9pq8)

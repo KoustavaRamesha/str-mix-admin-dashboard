@@ -1,4 +1,4 @@
-import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
 
 import './Masonry.css';
@@ -38,19 +38,6 @@ const useMeasure = <T extends HTMLElement>() => {
   return [ref, size] as const;
 };
 
-const preloadImages = async (urls: string[]): Promise<void> => {
-  await Promise.all(
-    urls.map(
-      src =>
-        new Promise<void>(resolve => {
-          const img = new Image();
-          img.src = src;
-          img.onload = img.onerror = () => resolve();
-        })
-    )
-  );
-};
-
 interface MasonryProps {
   items: any[];
   renderItem: (item: any, index: number) => React.ReactNode;
@@ -78,75 +65,96 @@ const Masonry: React.FC<MasonryProps> = ({
 }) => {
   const columns = useMedia(
     ['(min-width:1500px)', '(min-width:1000px)', '(min-width:600px)', '(min-width:400px)'],
-    [3, 2, 2, 1], // Adjusted for review card width
+    [3, 2, 2, 1],
     1
   );
 
   const [containerRef, { width }] = useMeasure<HTMLDivElement>();
-  const [imagesReady, setImagesReady] = useState(false);
+  const [layoutItems, setLayoutItems] = useState<any[]>([]);
+  const [containerHeight, setContainerHeight] = useState(0);
+  const itemRefs = useRef<Map<string | number, HTMLDivElement>>(new Map());
+  const hasMounted = useRef(false);
 
-  // Skip preload for now or adjust if images are present
-  useEffect(() => {
-    setImagesReady(true);
-  }, []);
-
-  const grid = useMemo<any[]>(() => {
-    if (!width) return [];
+  const calculateLayout = () => {
+    if (!width || items.length === 0) return;
 
     const colHeights = new Array(columns).fill(0);
     const columnWidth = width / columns;
+    const gap = 24; // Standardized industrial gap
+    const padding = 12;
 
-    return items.map(child => {
+    const newLayout = items.map((item) => {
+      const el = itemRefs.current.get(item.id);
+      // We measure the element's actual height. If not available yet, we fallback.
+      const measuredHeight = el ? el.getBoundingClientRect().height : 300;
+
       const col = colHeights.indexOf(Math.min(...colHeights));
       const x = columnWidth * col;
-      // Estimate height based on content or use a fixed ratio for grid logic
-      // Since these are cards, we can't easily pre-measure, so we'll use 
-      // the container's natural flow for heights if possible, or a gap-based logic.
-      // The original GSAP masonry uses fixed heights from data.
-      const height = (child.height || 300) / 2;
       const y = colHeights[col];
 
-      colHeights[col] += height + 16; // Add gap
+      colHeights[col] += measuredHeight + gap;
 
-      return { ...child, x, y, w: columnWidth, h: height };
-    });
-  }, [columns, items, width]);
-
-  const hasMounted = useRef(false);
-
-  useLayoutEffect(() => {
-    if (!imagesReady || !grid.length) return;
-
-    grid.forEach((item, index) => {
-      const selector = `[data-key="${item.id}"]`;
-      const animationProps = {
-        x: item.x,
-        y: item.y,
-        width: item.w - 12, // Account for padding
-        // height: item.h // Let content define height usually, but GSAP needs a target
+      return {
+        id: item.id,
+        x,
+        y,
+        w: columnWidth - padding,
+        h: measuredHeight,
       };
+    });
 
+    setLayoutItems(newLayout);
+    setContainerHeight(Math.max(...colHeights));
+  };
+
+  // Synchronize layout calculation
+  useLayoutEffect(() => {
+    calculateLayout();
+  }, [width, items, columns]);
+
+  // Ensure measurements are accurate after images/content load
+  useEffect(() => {
+    const timeout = setTimeout(calculateLayout, 250);
+    window.addEventListener('load', calculateLayout);
+    return () => {
+      clearTimeout(timeout);
+      window.removeEventListener('load', calculateLayout);
+    };
+  }, [items]);
+
+  // GSAP animation logic
+  useLayoutEffect(() => {
+    if (!layoutItems.length) return;
+
+    layoutItems.forEach((item, index) => {
+      const selector = `[data-key="${item.id}"]`;
+      
       if (!hasMounted.current) {
         const initialPos = getInitialPosition(item);
         const initialState = {
           opacity: 0,
           x: initialPos.x,
           y: initialPos.y,
-          // width: item.w - 12,
+          width: item.w,
           ...(blurToFocus && { filter: 'blur(10px)' })
         };
 
         gsap.fromTo(selector, initialState, {
           opacity: 1,
-          ...animationProps,
+          x: item.x,
+          y: item.y,
+          width: item.w,
           ...(blurToFocus && { filter: 'blur(0px)' }),
           duration: 0.8,
           ease: 'power3.out',
-          delay: index * stagger
+          delay: index * stagger,
+          overwrite: 'auto'
         });
       } else {
         gsap.to(selector, {
-          ...animationProps,
+          x: item.x,
+          y: item.y,
+          width: item.w,
           duration: duration,
           ease: ease,
           overwrite: 'auto'
@@ -155,7 +163,7 @@ const Masonry: React.FC<MasonryProps> = ({
     });
 
     hasMounted.current = true;
-  }, [grid, imagesReady, stagger, animateFrom, blurToFocus, duration, ease]);
+  }, [layoutItems]);
 
   const getInitialPosition = (item: any) => {
     const containerRect = containerRef.current?.getBoundingClientRect();
@@ -188,13 +196,29 @@ const Masonry: React.FC<MasonryProps> = ({
   };
 
   return (
-    <div ref={containerRef} className="list">
-      {grid.map((item, index) => (
+    <div 
+      ref={containerRef} 
+      className="list" 
+      style={{ 
+        height: containerHeight, 
+        minHeight: items.length > 0 ? '400px' : '0px',
+        position: 'relative',
+        transition: 'height 0.4s ease-out'
+      }}
+    >
+      {items.map((item, index) => (
         <div 
           key={item.id} 
           data-key={item.id} 
+          ref={(el) => { if (el) itemRefs.current.set(item.id, el); }}
           className="item-wrapper"
-          style={{ position: 'absolute' }}
+          style={{ 
+            position: 'absolute', 
+            top: 0, 
+            left: 0,
+            width: width ? (width / columns) - 12 : '100%',
+            opacity: hasMounted.current ? 1 : 0
+          }}
         >
           {renderItem(item, index)}
         </div>

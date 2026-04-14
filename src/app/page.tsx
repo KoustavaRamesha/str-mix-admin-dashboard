@@ -82,12 +82,11 @@ export default function Home() {
         <section className="relative min-h-[90vh] flex items-center overflow-hidden border-b-4 border-primary">
           <div className="absolute inset-0 w-full h-full">
             <Image
-              src={heroImg?.imageUrl || "https://picsum.photos/seed/solid1/1920/1080"}
+              src="/hero-bg.png"
               alt="Industrial Construction Background"
               fill
-              className="object-cover brightness-[0.2] grayscale contrast-125"
+              className="object-cover brightness-[0.3] contrast-125"
               priority
-              data-ai-hint="industrial construction"
             />
             {/* Overlay grid texture for industrial feel */}
             <div className="absolute inset-0 opacity-20 mix-blend-overlay"></div>
