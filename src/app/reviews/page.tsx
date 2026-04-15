@@ -187,12 +187,12 @@ export default function ReviewsPage() {
                   </div>
                 ) : (
                   <Masonry 
-                    items={reviews || []}
+                    items={(reviews || []).map((r: any) => ({ ...r, id: r.id || r.createdAt }))}
                     stagger={0.05}
                     animateFrom="bottom"
                     renderItem={(review: any) => (
                       <SpotlightCard 
-                        className="w-full flex-1 p-8 bg-black/20 backdrop-blur-md border-white/10 relative group hover:border-primary/50 transition-colors h-full"
+                        className="w-full p-6 md:p-8 bg-black/20 backdrop-blur-md border-white/10 relative group hover:border-primary/50 transition-colors"
                         spotlightColor="rgba(255, 255, 0, 0.15)"
                       >
                         <Quote className="absolute top-6 right-8 h-12 w-12 text-white/5 group-hover:text-primary/10 transition-colors" />

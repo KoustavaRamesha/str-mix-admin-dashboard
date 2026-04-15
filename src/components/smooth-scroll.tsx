@@ -14,7 +14,7 @@ export function SmoothScroll({ children }: { children: React.ReactNode }) {
       smooth: true, // Enable smooth scrolling
       mouseMultiplier: 1, // Mouse scroll speed multiplier
       smoothTouch: false, // Disable smooth scrolling for touch devices
-      touchMultiplier: 2, // Touch scroll speed multiplier
+      touchMultiplier: 1.5,
       infinite: false, // Disable infinite scroll
     });
 

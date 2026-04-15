@@ -133,7 +133,7 @@ export function Navbar() {
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: '-100%', opacity: 0 }}
             transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-            className="md:hidden fixed inset-0 top-20 bg-background/95 backdrop-blur-xl z-50 p-8 flex flex-col gap-8 border-b-2 border-primary"
+            className="md:hidden fixed inset-0 top-20 bg-background backdrop-blur-xl z-50 p-8 flex flex-col gap-8 border-b-2 border-primary"
           >
             {navItems.map((item, index) => (
               <motion.div 
