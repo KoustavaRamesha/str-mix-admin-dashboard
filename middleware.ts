@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import crypto from 'crypto';
 
 export function middleware(request: NextRequest) {
   // Generate a unique nonce for this request
-  const nonce = crypto.randomBytes(16).toString('base64');
+  const bytes = new Uint8Array(16);
+  crypto.getRandomValues(bytes);
+  const nonce = btoa(String.fromCharCode(...bytes));
   
   // Clone the request headers and add the nonce
   const requestHeaders = new Headers(request.headers);

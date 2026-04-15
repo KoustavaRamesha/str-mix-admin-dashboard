@@ -25,7 +25,7 @@ export function Footer() {
                 className="h-14 w-14 transition-transform group-hover:scale-110"
               />
               <span className="font-headline text-4xl font-bold tracking-tighter uppercase">
-                STR <span className="text-primary">mix</span>
+                STR <span className="text-red-500">mix</span>
               </span>
             </Link>
             <p className="text-muted-foreground text-xl leading-relaxed max-w-md">

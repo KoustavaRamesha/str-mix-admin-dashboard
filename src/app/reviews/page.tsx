@@ -16,11 +16,15 @@ import { validateReviewForm } from "@/lib/validation"
 import { Reveal } from "@/components/ui/reveal"
 import BlurText from "@/components/ui/blur-text"
 import dynamic from "next/dynamic"
+import { HeroBackgroundSlideshow } from "@/components/hero-background-slideshow"
+import reviewBg1 from "../../../review images/rAsCE.jpg"
+import reviewBg2 from "../../../review images/image.jpg"
 
 const Masonry = dynamic(() => import("@/components/ui/Masonry"), { ssr: false })
 import SpotlightCard from "@/components/ui/SpotlightCard"
 
 export default function ReviewsPage() {
+  const reviewBackgroundImages = [reviewBg1, reviewBg2]
   const db = useFirestore()
   const [loading, setLoading] = useState(false)
   const [submitted, setSubmitted] = useState(false)
@@ -90,8 +94,13 @@ export default function ReviewsPage() {
 
   return (
     <>
-        <section className="py-32 industrial-grid border-b-2 border-muted">
-          <div className="container mx-auto px-4 text-center">
+        <section className="relative py-32 industrial-grid border-b-2 border-muted overflow-hidden">
+          <HeroBackgroundSlideshow
+            images={reviewBackgroundImages}
+            overlayClassName="bg-black/35"
+            imageClassName="object-[center_40%]"
+          />
+          <div className="container mx-auto px-4 text-center relative z-10">
             <Reveal direction="down">
               <BlurText
                 text="Client Intel"
@@ -101,7 +110,7 @@ export default function ReviewsPage() {
                 direction="top"
                 className="text-6xl md:text-8xl font-headline font-bold uppercase tracking-tighter mb-4 leading-none"
               />
-              <p className="text-muted-foreground text-lg uppercase font-bold tracking-widest max-w-2xl mx-auto">
+              <p className="text-white text-lg uppercase font-bold tracking-widest max-w-2xl mx-auto">
                 Real feedback from industrial leaders and property developers.
               </p>
             </Reveal>

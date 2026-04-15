@@ -9,9 +9,15 @@ import { useCollection, useFirestore, useMemoFirebase } from "@/firebase"
 import { collection } from "firebase/firestore"
 import { Reveal } from "@/components/ui/reveal"
 import BlurText from "@/components/ui/blur-text"
+import { HeroBackgroundSlideshow } from "@/components/hero-background-slideshow"
+import projectBg1 from "../../../projects images/66a7fc3331aaa58bdfbc8a11_6668944e139166e1e1aa3ade_Construction-Project-Phase-2-Design-Pre-construction.webp"
+import projectBg2 from "../../../projects images/66a7fc3331aaa58bdfbc8a09_66689922b7b592dd1028cd10_Construction-Project-Phase-5-Post-construction-Closeout.webp"
+import projectBg3 from "../../../projects images/66a7fc3331aaa58bdfbc8a05_666894d050072d544c477f31_Construction-Project-Phase-4-Construction-and-Monitoring.webp"
+import projectBg4 from "../../../projects images/6516e46ad9c29f66d3bf7f6c_how-to-proper-plan-a-construction-project.webp"
 
 export default function ProjectsPage() {
   const [searchTerm, setSearchTerm] = useState("")
+  const projectBackgroundImages = [projectBg1, projectBg2, projectBg3, projectBg4]
   const db = useFirestore()
   const projectsQuery = useMemoFirebase(() => collection(db, 'projects'), [db])
   const { data: projects } = useCollection(projectsQuery)
@@ -31,19 +37,24 @@ export default function ProjectsPage() {
   return (
     <>
         {/* Header */}
-        <section className="py-24 bg-card border-b-2 border-muted p-0">
-          <div className="container py-16">
+        <section className="relative py-24 bg-card border-b-2 border-muted p-0 overflow-hidden">
+          <HeroBackgroundSlideshow
+            images={projectBackgroundImages}
+            overlayClassName="bg-black/35"
+            imageClassName="object-[center_35%]"
+          />
+          <div className="container py-16 relative z-10">
             <div className="flex flex-col lg:flex-row justify-between items-end gap-10">
               <Reveal direction="down" className="space-y-4">
                 <BlurText
-                  text="Case Studies"
+                  text="OUR NOTABLE PROJECTS"
                   as="h1"
                   delay={120}
                   animateBy="words"
                   direction="top"
                   className="text-6xl md:text-8xl font-headline font-bold uppercase tracking-tighter leading-[0.8]"
                 />
-                <p className="text-lg text-muted-foreground uppercase font-bold tracking-[0.3em]">A portfolio of structural excellence.</p>
+                <p className="text-lg text-white uppercase font-bold tracking-[0.3em]">A portfolio of structural excellence.</p>
               </Reveal>
               <div className="w-full md:w-80 relative">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />

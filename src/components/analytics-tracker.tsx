@@ -3,7 +3,7 @@
 
 import { useEffect } from 'react';
 import { useFirestore } from '@/firebase';
-import { doc, updateDoc, increment, setDoc } from 'firebase/firestore';
+import { doc, increment, setDoc, updateDoc } from 'firebase/firestore';
 
 export function AnalyticsTracker() {
   const db = useFirestore();
@@ -20,14 +20,25 @@ export function AnalyticsTracker() {
         // Write to a dedicated public_stats document that has relaxed write rules
         // instead of settings/global which requires isSuperAdmin()
         const statsRef = doc(db, 'public_stats', 'counters');
+        const now = new Date();
+        const monthKey = `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, '0')}`;
+        const dayKey = `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, '0')}-${String(now.getUTCDate()).padStart(2, '0')}`;
         
         try {
-          // Increment the visitor count atomically.
-          // Use setDoc with merge as a fallback if the doc doesn't exist.
+          // Ensure analytics document exists, then atomically increment lifetime + monthly + daily counters.
           await setDoc(statsRef, {
-            visitorCount: increment(1),
-            lastVisit: new Date().toISOString(),
+            visitorCount: 0,
+            monthlyVisitors: {},
+            dailyVisitors: {},
+            lastVisit: null,
           }, { merge: true });
+
+          await updateDoc(statsRef, {
+            visitorCount: increment(1),
+            lastVisit: now.toISOString(),
+            [`monthlyVisitors.${monthKey}`]: increment(1),
+            [`dailyVisitors.${dayKey}`]: increment(1),
+          });
           
           sessionStorage.setItem('strmix_session_tracked', 'true');
         } catch (error) {

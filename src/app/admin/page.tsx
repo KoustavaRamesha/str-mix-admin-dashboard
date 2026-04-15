@@ -46,7 +46,7 @@ export default function AdminDashboard() {
   const postsQuery = useMemoFirebase(() => collection(db, 'admin_posts'), [db]);
   const reviewsQuery = useMemoFirebase(() => collection(db, 'admin_reviews'), [db]);
   const ticketsQuery = useMemoFirebase(() => collection(db, 'support_tickets'), [db]);
-  const settingsRef = useMemoFirebase(() => doc(db, 'settings', 'global'), [db]);
+  const publicStatsRef = useMemoFirebase(() => doc(db, 'public_stats', 'counters'), [db]);
   
   // Recent activity query
   const recentTicketsQuery = useMemoFirebase(() => 
@@ -57,13 +57,13 @@ export default function AdminDashboard() {
   const { data: reviews, isLoading: reviewsLoading } = useCollection(reviewsQuery);
   const { data: tickets, isLoading: ticketsLoading } = useCollection(ticketsQuery);
   const { data: recentTickets } = useCollection(recentTicketsQuery);
-  const { data: settings, isLoading: settingsLoading } = useDoc(settingsRef);
+  const { data: publicStats, isLoading: publicStatsLoading } = useDoc(publicStatsRef);
 
   useEffect(() => {
     setLastRefresh(new Date().toLocaleTimeString())
-  }, [posts, reviews, tickets, settings])
+  }, [posts, reviews, tickets, publicStats])
 
-  const visitorCount = settings?.visitorCount || 0;
+  const visitorCount = publicStats?.visitorCount || 0;
   const publishedCount = posts?.filter(p => p.status === 'published').length || 0;
   const draftCount = posts?.filter(p => p.status === 'draft').length || 0;
   const pendingReviewsCount = reviews?.filter(isPendingReview).length || 0;
@@ -164,7 +164,7 @@ export default function AdminDashboard() {
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-headline font-bold">
-                {postsLoading || reviewsLoading || ticketsLoading || settingsLoading ? <Loader2 className="h-6 w-6 animate-spin" /> : stat.value}
+                {postsLoading || reviewsLoading || ticketsLoading || publicStatsLoading ? <Loader2 className="h-6 w-6 animate-spin" /> : stat.value}
               </div>
               <p className="text-[10px] flex items-center gap-1 mt-1 font-bold uppercase text-muted-foreground">
                 {stat.trend}

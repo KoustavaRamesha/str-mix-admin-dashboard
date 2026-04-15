@@ -8,6 +8,7 @@ import { usePathname, useRouter } from "next/navigation"
 import { 
   LayoutDashboard, 
   FileText, 
+  Settings2,
   Star, 
   LifeBuoy, 
   Settings, 
@@ -15,6 +16,7 @@ import {
   ChevronRight,
   Image as ImageIcon,
   BriefcaseBusiness,
+  BarChart3,
   Users as UsersIcon,
   ShieldAlert,
   Loader,
@@ -49,6 +51,8 @@ const adminNav = [
   { name: "Blog Posts", href: "/admin/blog", icon: FileText },
   { name: "Media Library", href: "/admin/media", icon: ImageIcon },
   { name: "Projects", href: "/admin/projects", icon: BriefcaseBusiness },
+  { name: "Site Content", href: "/admin/content", icon: Settings2 },
+  { name: "Analytics", href: "/admin/analytics", icon: BarChart3 },
   { name: "Reviews", href: "/admin/reviews", icon: Star },
   { name: "Support Tickets", href: "/admin/tickets", icon: LifeBuoy },
   { name: "Team Management", href: "/admin/users", icon: UsersIcon },
@@ -189,14 +193,17 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
   return (
     <SidebarProvider>
       <Sidebar collapsible="icon" className="bg-background border-r-2 border-muted shadow-xl">
-        <SidebarHeader className="p-4">
-          <Link href="/" className="flex items-center gap-2 overflow-hidden">
+        <SidebarHeader className="p-4 border-b border-sidebar-border/50 bg-sidebar/40 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:py-3">
+          <Link
+            href="/"
+            className="flex items-center gap-2 overflow-hidden group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:w-full group-data-[collapsible=icon]:min-h-12"
+          >
             <Image
               src="/logo.png"
               alt="STR mix Logo"
               width={56}
               height={56}
-              className="h-14 w-14 shrink-0"
+              className="h-14 w-14 shrink-0 object-contain group-data-[collapsible=icon]:h-10 group-data-[collapsible=icon]:w-10"
               priority
             />
             <span className="font-headline text-lg font-bold tracking-tighter uppercase whitespace-nowrap group-data-[collapsible=icon]:hidden">

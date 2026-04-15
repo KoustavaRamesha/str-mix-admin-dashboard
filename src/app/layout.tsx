@@ -36,13 +36,14 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   // Get nonce from request headers (set by middleware)
-  const nonce = headers().get('x-nonce');
+  const headerStore = await headers();
+  const nonce = headerStore.get('x-nonce');
 
   return (
     <html lang="en" className={`dark ${inter.variable} ${spaceGrotesk.variable}`} suppressHydrationWarning>

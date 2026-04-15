@@ -8,9 +8,14 @@ import { Reveal } from "@/components/ui/reveal"
 import BlurText from "@/components/ui/blur-text"
 import { useFirestore, useCollection, useMemoFirebase } from "@/firebase"
 import { collection, query, orderBy } from "firebase/firestore"
+import { HeroBackgroundSlideshow } from "@/components/hero-background-slideshow"
+import blogBg1 from "../../../blogs images/istockphoto-1213499152-612x612.jpg"
+import blogBg2 from "../../../blogs images/worker-reading-news-with-tablet_1162-83.avif"
+import blogBg3 from "../../../blogs images/istockphoto-1477858506-612x612.jpg"
 
 export default function BlogPage() {
   const db = useFirestore()
+  const blogBackgroundImages = [blogBg1, blogBg2, blogBg3]
   const postsQuery = useMemoFirebase(() => {
     return query(
       collection(db, 'published_posts'),
@@ -22,8 +27,13 @@ export default function BlogPage() {
 
   return (
     <>
-      <div className="py-24 industrial-grid">
-        <div className="container mx-auto px-4">
+      <section className="relative py-24 industrial-grid border-b-2 border-muted overflow-hidden">
+        <HeroBackgroundSlideshow
+          images={blogBackgroundImages}
+          overlayClassName="bg-black/35"
+          imageClassName="object-[center_35%]"
+        />
+        <div className="container mx-auto px-4 relative z-10">
           <Reveal direction="down" className="max-w-3xl mb-16">
             <BlurText
               text="Industry Insights"
@@ -33,11 +43,15 @@ export default function BlogPage() {
               direction="top"
               className="text-5xl font-headline font-bold uppercase tracking-tighter mb-4"
             />
-            <p className="text-muted-foreground text-lg">
+            <p className="text-white text-lg">
               The latest news, technical guides, and project updates from the world of concrete construction.
             </p>
           </Reveal>
+        </div>
+      </section>
 
+      <section className="py-24 industrial-grid">
+        <div className="container mx-auto px-4">
           {isLoading ? (
             <Reveal direction="none" className="flex justify-center py-20">
               <ProgressLoader label="Loading insights" />
@@ -62,7 +76,7 @@ export default function BlogPage() {
             </div>
           )}
         </div>
-      </div>
+      </section>
     </>
   )
 }

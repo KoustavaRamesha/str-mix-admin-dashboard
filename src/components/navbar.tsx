@@ -65,7 +65,7 @@ export function Navbar() {
       variants={navVariants}
       initial={hasAnimated.current ? false : "hidden"}
       animate="visible"
-      className="fixed top-0 z-50 w-full border-b-2 border-muted bg-background/50 backdrop-blur-xl transition-all duration-300"
+      className="fixed top-0 z-[10000] w-full border-b-2 border-muted bg-background/50 backdrop-blur-xl transition-all duration-300"
     >
       <div className="container mx-auto px-4 h-20 flex items-center justify-between">
         <motion.div variants={itemVariants}>
@@ -79,7 +79,7 @@ export function Navbar() {
               priority
             />
             <span className="font-headline text-2xl md:text-3xl font-bold tracking-tighter uppercase leading-none">
-              STR <span className="text-primary">mix</span>
+              STR <span className="text-red-500">mix</span>
             </span>
           </Link>
         </motion.div>
@@ -133,7 +133,7 @@ export function Navbar() {
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: '-100%', opacity: 0 }}
             transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-            className="md:hidden fixed inset-0 top-20 bg-background/95 backdrop-blur-xl z-50 p-8 flex flex-col gap-8 border-b-2 border-primary"
+            className="md:hidden fixed top-0 left-0 w-full h-[100vh] bg-[#111111]/[0.97] z-[9999] overflow-y-auto p-8 pt-28 flex flex-col gap-8 border-b-2 border-primary"
           >
             {navItems.map((item, index) => (
               <motion.div 

@@ -71,6 +71,12 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    // Public site content — readable by everyone, editable by admins
+    match /public_content/site {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
     match /users/{userId} {
       allow get, list: if isOwner(userId) || isAdmin();
       allow create: if isOwner(userId);

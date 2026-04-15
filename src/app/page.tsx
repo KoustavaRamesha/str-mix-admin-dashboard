@@ -3,6 +3,7 @@
 import Image from "next/image"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import { doc } from "firebase/firestore"
 
 import { Button } from "@/components/ui/button"
 import { ConsultationButton } from "@/components/ui/consultation-button"
@@ -14,14 +15,26 @@ import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious
 import { ProjectFlipCard } from "@/components/ui/project-flip-card"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import BlurText from "@/components/ui/blur-text"
+import { useDoc, useFirestore, useMemoFirebase } from "@/firebase"
+
+type FeaturedProject = {
+  title: string
+  location: string
+  category: string
+  year: string
+  description: string
+  image: string
+}
 
 export default function Home() {
   const router = useRouter()
-  const heroImg = PlaceHolderImages.find(img => img.id === 'hero-bg')
-  const serviceImgs = PlaceHolderImages.filter(img => img.id.startsWith('service-'))
+  const db = useFirestore()
+  const contentRef = useMemoFirebase(() => doc(db, "public_content", "site"), [db])
+  const { data: siteContent } = useDoc<any>(contentRef)
+
   const projectImgs = PlaceHolderImages.filter(img => img.id.startsWith('project-'))
 
-  const featuredProjects = [
+  const defaultFeaturedProjects: FeaturedProject[] = [
     {
       title: "Regional Trade Center",
       location: "Metropolitan District",
@@ -55,6 +68,14 @@ export default function Home() {
       image: projectImgs[3]?.imageUrl || "https://picsum.photos/seed/p4/600/800"
     }
   ]
+  const featuredProjects: FeaturedProject[] =
+    Array.isArray(siteContent?.homeFeaturedProjects) && siteContent.homeFeaturedProjects.length > 0
+      ? (siteContent.homeFeaturedProjects as FeaturedProject[])
+      : defaultFeaturedProjects
+  const defaultHeroVideo = "/istockphoto-2249474685-640_adpp_is.mp4"
+  const heroVideoSrc = typeof siteContent?.homeHeroVideo === "string" && siteContent.homeHeroVideo.trim().length > 0
+    ? siteContent.homeHeroVideo.trim()
+    : defaultHeroVideo
 
   const capabilities = [
     {
@@ -79,21 +100,27 @@ export default function Home() {
     <>
         
         {/* === HERO SECTION === */}
-        <section className="relative min-h-[90vh] flex items-center overflow-hidden border-b-4 border-primary">
+        <section className="relative z-0 -mt-20 min-h-[90vh] flex items-end overflow-hidden border-b-4 border-primary">
           <div className="absolute inset-0 w-full h-full">
-            <Image
-              src="/hero-bg.png"
-              alt="Industrial Construction Background"
-              fill
-              className="object-cover brightness-[0.3] contrast-125"
-              priority
-            />
+            <video
+              key={heroVideoSrc}
+              autoPlay
+              muted
+              loop
+              playsInline
+              preload="metadata"
+              poster="/hero-bg.png"
+              className="absolute inset-0 h-full w-full object-cover brightness-[0.5] contrast-115"
+            >
+              <source src={heroVideoSrc} />
+              {heroVideoSrc !== defaultHeroVideo && <source src={defaultHeroVideo} type="video/mp4" />}
+            </video>
             {/* Overlay grid texture for industrial feel */}
-            <div className="absolute inset-0 opacity-20 mix-blend-overlay"></div>
-            <div className="absolute bottom-0 left-0 w-full h-2/3 bg-gradient-to-t from-background via-background/80 to-transparent" />
+            <div className="absolute inset-0 opacity-12 mix-blend-overlay"></div>
+            <div className="absolute bottom-0 left-0 w-full h-2/3 bg-gradient-to-t from-background/70 via-background/40 to-transparent" />
           </div>
 
-          <div className="container relative z-10 mx-auto px-4 pt-20 pb-10">
+          <div className="container relative z-10 mx-auto px-4 pb-[30vh] md:pb-[34vh]">
             <div className="max-w-5xl space-y-8">
               <Reveal direction="down" duration={0.6}>
                 <div className="inline-flex items-center gap-3 py-2 px-5 border-l-4 border-primary bg-primary/10 text-primary text-[11px] font-bold uppercase tracking-[0.4em] shadow-[0_0_20px_rgba(255,255,0,0.15)] ">
@@ -126,7 +153,7 @@ export default function Home() {
                 </p>
               </Reveal>
 
-              <Reveal direction="up" delay={1} className="pt-6">
+              <Reveal direction="up" delay={1} className="pt-2 -mt-2">
                 <ConsultationButton onClick={() => router.push('/contact')} />
               </Reveal>
             </div>
@@ -137,7 +164,7 @@ export default function Home() {
         <section className="py-0 border-b-2 border-muted bg-background">
           <div className="grid grid-cols-1 md:grid-cols-4 divide-y-2 md:divide-y-0 md:divide-x-2 divide-muted">
             {[
-              { label: "Years Operational", value: "15+" },
+              { label: "Years Operational", value: "25+" },
               { label: "Projects Completed", value: "500+" },
               { label: "Safety Rating", value: "100%" },
               { label: "Technical Staff", value: "120+" }

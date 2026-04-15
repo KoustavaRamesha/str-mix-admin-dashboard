@@ -15,6 +15,7 @@ import { validateContactForm } from "@/lib/validation"
 import { Reveal } from "@/components/ui/reveal"
 import BlurText from "@/components/ui/blur-text"
 import dynamic from "next/dynamic"
+import { HeroBackgroundSlideshow } from "@/components/hero-background-slideshow"
 
 const LightRays = dynamic(() => import("@/components/ui/LightRays"), { ssr: false })
 
@@ -70,60 +71,63 @@ export default function ContactPage() {
   return (
     <>
       <div className="py-32 industrial-grid relative overflow-hidden">
+        <HeroBackgroundSlideshow overlayClassName="bg-black/28" />
 
-        <div className="container mx-auto px-4 max-w-[1440px]">
+        <div className="container mx-auto px-4 max-w-[1440px] relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
             <div className="space-y-8">
-              <Reveal direction="down" className="space-y-4">
-                <BlurText
-                  text="Let's Talk Build"
-                  as="h1"
-                  delay={120}
-                  animateBy="words"
-                  direction="top"
-                  className="text-5xl font-headline font-bold uppercase tracking-tighter leading-none"
-                />
-                <p className="text-muted-foreground text-lg max-w-md">
-                  Have a massive industrial project or a custom residential need? Reach out for a specialized quote and structural consultation.
-                </p>
-              </Reveal>
+              <div className="bg-black/35 backdrop-blur-md border border-white/20 shadow-2xl p-8 md:p-10 space-y-8">
+                <Reveal direction="down" className="space-y-4">
+                  <BlurText
+                    text="Let's Talk Build"
+                    as="h1"
+                    delay={120}
+                    animateBy="words"
+                    direction="top"
+                    className="text-5xl font-headline font-bold uppercase tracking-tighter leading-none text-white"
+                  />
+                  <p className="text-white text-lg max-w-md">
+                    Have a massive industrial project or a custom residential need? Reach out for a specialized quote and structural consultation.
+                  </p>
+                </Reveal>
 
-              <Reveal direction="up" delay={0.2} className="space-y-6">
-                <div className="flex items-start gap-4">
-                  <div className="h-10 w-10 rounded bg-primary/10 flex items-center justify-center shrink-0 border border-primary/20">
-                    <MapPin className="h-5 w-5 text-primary" />
+                <Reveal direction="up" delay={0.2} className="space-y-6">
+                  <div className="flex items-start gap-4">
+                    <div className="h-10 w-10 rounded bg-primary/10 flex items-center justify-center shrink-0 border border-primary/20">
+                      <MapPin className="h-5 w-5 text-primary" />
+                    </div>
+                    <div>
+                      <h4 className="font-bold uppercase text-sm mb-1 text-white">Office Location</h4>
+                      <a
+                        href="https://maps.app.goo.gl/qK5gTSWCSer9FEZ1A"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-white/85 text-sm hover:text-primary transition-colors"
+                      >
+                        Sy.No.:104, Anjanapura Post, Bengaluru 560108
+                      </a>
+                    </div>
                   </div>
-                  <div>
-                    <h4 className="font-bold uppercase text-sm mb-1">Office Location</h4>
-                    <a
-                      href="https://maps.app.goo.gl/qK5gTSWCSer9FEZ1A"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-muted-foreground text-sm hover:text-primary transition-colors"
-                    >
-                      Sy.No.:104, Anjanapura Post, Bengaluru 560108
-                    </a>
+                  <div className="flex items-start gap-4">
+                    <div className="h-10 w-10 rounded bg-primary/10 flex items-center justify-center shrink-0 border border-primary/20">
+                      <Phone className="h-5 w-5 text-primary" />
+                    </div>
+                    <div>
+                      <h4 className="font-bold uppercase text-sm mb-1 text-white">Direct Line</h4>
+                      <p className="text-white/85 text-sm">+91 97414 99909</p>
+                    </div>
                   </div>
-                </div>
-                <div className="flex items-start gap-4">
-                  <div className="h-10 w-10 rounded bg-primary/10 flex items-center justify-center shrink-0 border border-primary/20">
-                    <Phone className="h-5 w-5 text-primary" />
+                  <div className="flex items-start gap-4">
+                    <div className="h-10 w-10 rounded bg-primary/10 flex items-center justify-center shrink-0 border border-primary/20">
+                      <Mail className="h-5 w-5 text-primary" />
+                    </div>
+                    <div>
+                      <h4 className="font-bold uppercase text-sm mb-1 text-white">Email Support</h4>
+                      <p className="text-white/85 text-sm">contact@strmix.digital</p>
+                    </div>
                   </div>
-                  <div>
-                    <h4 className="font-bold uppercase text-sm mb-1">Direct Line</h4>
-                    <p className="text-muted-foreground text-sm">+91 97414 99909</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-4">
-                  <div className="h-10 w-10 rounded bg-primary/10 flex items-center justify-center shrink-0 border border-primary/20">
-                    <Mail className="h-5 w-5 text-primary" />
-                  </div>
-                  <div>
-                    <h4 className="font-bold uppercase text-sm mb-1">Email Support</h4>
-                    <p className="text-muted-foreground text-sm">contact@strmix.digital</p>
-                  </div>
-                </div>
-              </Reveal>
+                </Reveal>
+              </div>
             </div>
 
             <Reveal direction="left" delay={0.3} className="w-full relative z-10">

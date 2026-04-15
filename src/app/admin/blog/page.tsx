@@ -29,6 +29,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -415,6 +416,9 @@ export default function BlogManagement() {
                     <DialogContent className="max-w-2xl bg-card border-2 border-muted">
                       <DialogHeader>
                         <DialogTitle className="uppercase tracking-widest text-sm">Media Selector</DialogTitle>
+                        <DialogDescription className="text-xs text-muted-foreground">
+                          Choose an image asset from the media registry for the blog featured image.
+                        </DialogDescription>
                       </DialogHeader>
                       {mediaLoading ? (
                         <div className="p-8 text-center">
