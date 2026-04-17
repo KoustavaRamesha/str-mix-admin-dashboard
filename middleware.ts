@@ -26,16 +26,20 @@ export function middleware(request: NextRequest) {
     "default-src 'self'",
     `script-src 'self' 'nonce-${nonce}' https://apis.google.com https://cdn.jsdelivr.net`,
     `style-src 'self' 'nonce-${nonce}' https://fonts.googleapis.com`,
-    "img-src 'self' data: blob: https: http:",
+    "img-src 'self' data: blob: https:",
     `connect-src 'self' https://*.firebaseio.com https://*.googleapis.com https://${supabaseHostname} wss://*.firebaseio.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com`,
     "font-src 'self' https://fonts.gstatic.com",
     "frame-src 'self' https://accounts.google.com https://*.firebaseapp.com",
+    "frame-ancestors 'self'",
+    "form-action 'self'",
+    "upgrade-insecure-requests",
     "object-src 'none'",
     "base-uri 'self'",
   ].join('; ');
 
   response.headers.set('Content-Security-Policy', cspHeader);
   response.headers.set('x-nonce', nonce);
+  response.headers.set('X-Robots-Tag', 'noindex, nofollow');
 
   return response;
 }

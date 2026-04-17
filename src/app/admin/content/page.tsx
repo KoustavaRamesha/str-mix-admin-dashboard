@@ -1,10 +1,10 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
-import { collection, doc, orderBy, query } from "firebase/firestore"
+import { collection, doc, orderBy, query, setDoc } from "firebase/firestore"
 import { Loader2, Save, Settings2, Upload, Video, Trash2 } from "lucide-react"
 
-import { useCollection, useDoc, useFirestore, useMemoFirebase, setDocumentNonBlocking, deleteDocumentNonBlocking } from "@/firebase"
+import { useCollection, useDoc, useFirestore, useMemoFirebase, deleteDocumentNonBlocking } from "@/firebase"
 import { useToast } from "@/hooks/use-toast"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
@@ -166,6 +166,7 @@ export default function AdminContentSettingsPage() {
 
   useEffect(() => {
     if (!contentData) return
+    if (JSON.stringify(form) !== JSON.stringify(defaultSettings)) return
     setForm({
       ...defaultSettings,
       ...contentData,
@@ -186,7 +187,7 @@ export default function AdminContentSettingsPage() {
           ? contentData.servicesHeroImages
           : defaultSettings.servicesHeroImages,
     })
-  }, [contentData])
+  }, [contentData, form])
   const updateService = (index: number, field: keyof EditableService, value: string) => {
     setForm((prev) => ({
       ...prev,
@@ -220,14 +221,23 @@ export default function AdminContentSettingsPage() {
     }))
   }
 
-  const handleSave = () => {
+  const handleSave = async () => {
     setSaving(true)
-    setDocumentNonBlocking(contentRef, form as Record<string, unknown>, { merge: true })
-    toast({
-      title: "Site Content Updated",
-      description: "Home/About public content has been saved.",
-    })
-    setTimeout(() => setSaving(false), 500)
+    try {
+      await setDoc(contentRef, form as Record<string, unknown>, { merge: true })
+      toast({
+        title: "Site Content Updated",
+        description: "Home/About public content has been saved.",
+      })
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Save Failed",
+        description: error?.message || "Could not save site content.",
+      })
+    } finally {
+      setSaving(false)
+    }
   }
 
   const handleUploadHeroVideo = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -619,4 +629,3 @@ export default function AdminContentSettingsPage() {
     </div>
   )
 }
-

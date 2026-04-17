@@ -7,7 +7,7 @@ const MAX_NAME_LENGTH = 100;
 const MAX_EMAIL_LENGTH = 254;
 const MAX_PHONE_LENGTH = 20;
 const MAX_SUBJECT_LENGTH = 200;
-const MAX_BODY_LENGTH = 5000;
+const MAX_BODY_LENGTH = 1000;
 const MAX_ROLE_LENGTH = 100;
 
 // Simple email regex — not exhaustive, but catches most invalid input
@@ -29,6 +29,8 @@ export interface ContactFormData {
   phone: string;
   subject: string;
   body: string;
+  honeypot: string;
+  submittedAtMs: number;
 }
 
 export interface ReviewFormData {
@@ -50,12 +52,25 @@ export function validateContactForm(raw: {
   phone: string | null;
   subject: string | null;
   message: string | null;
+  honeypot: string | null;
+  startedAtMs: number | null;
 }): ValidationResult<ContactFormData> {
   const name = sanitize(raw.name || '', MAX_NAME_LENGTH);
   const email = sanitize(raw.email || '', MAX_EMAIL_LENGTH);
   const phone = sanitize(raw.phone || '', MAX_PHONE_LENGTH);
   const subject = sanitize(raw.subject || '', MAX_SUBJECT_LENGTH);
   const body = sanitize(raw.message || '', MAX_BODY_LENGTH);
+  const honeypot = sanitize(raw.honeypot || '', MAX_NAME_LENGTH);
+  const startedAtMs = Number(raw.startedAtMs || 0);
+  const submissionAgeMs = Date.now() - startedAtMs;
+
+  if (honeypot) {
+    return { success: false, error: 'Spam protection triggered.' };
+  }
+
+  if (!Number.isFinite(startedAtMs) || startedAtMs <= 0 || submissionAgeMs < 2000) {
+    return { success: false, error: 'Please take a moment before submitting.' };
+  }
 
   if (!name || name.length < 2) {
     return { success: false, error: 'Name must be at least 2 characters.' };
@@ -75,7 +90,7 @@ export function validateContactForm(raw: {
 
   return {
     success: true,
-    data: { name, email, phone, subject, body },
+    data: { name, email, phone, subject, body, honeypot: '', submittedAtMs: startedAtMs },
   };
 }
 

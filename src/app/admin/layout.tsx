@@ -206,8 +206,9 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
               className="h-14 w-14 shrink-0 object-contain group-data-[collapsible=icon]:h-10 group-data-[collapsible=icon]:w-10"
               priority
             />
-            <span className="font-headline text-lg font-bold tracking-tighter uppercase whitespace-nowrap group-data-[collapsible=icon]:hidden">
-              STR <span className="text-primary">Admin</span>
+            <span className="font-headline text-lg font-bold tracking-tighter uppercase whitespace-nowrap group-data-[collapsible=icon]:hidden logo-wordmark">
+              <span className="logo-str">STR</span>
+              <span className="text-red-500">Admin</span>
             </span>
           </Link>
         </SidebarHeader>

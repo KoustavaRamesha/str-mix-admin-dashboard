@@ -74,93 +74,229 @@ section {
   @apply py-20 md:py-24;
 }
 
-/* Uiverse-inspired animated portal button */
+/* Uiverse-inspired portal button */
+.portal-button,
 .animated-button {
   position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 10px 24px;
-  border: 2px solid transparent;
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.14em;
+  justify-content: center;
+  width: 150px;
+  height: 50px;
+  padding: 0 24px;
+  border: 2px solid hsl(var(--primary));
+  border-radius: 50px;
   background-color: transparent;
-  border-radius: 999px;
-  font-weight: 700;
-  color: hsl(var(--primary));
-  box-shadow: 0 0 0 2px hsl(var(--primary));
-  cursor: pointer;
+  color: hsl(var(--foreground));
+  font-size: 16px;
+  font-weight: 500;
+  text-transform: uppercase;
+  transition: 300ms ease;
   overflow: hidden;
-  transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+  isolation: isolate;
 }
 
-.animated-button svg {
+.portal-button::before,
+.animated-button::before {
+  content: "";
   position: absolute;
-  width: 16px;
-  z-index: 9;
-  transition: all 0.8s cubic-bezier(0.23, 1, 0.32, 1);
+  z-index: -1;
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  background-color: hsl(var(--primary));
+  top: 100%;
+  left: 0;
+  transition: 500ms ease;
 }
 
-.animated-button .arr-1 {
-  right: 12px;
+.portal-button__text {
+  position: relative;
+  z-index: 1;
 }
 
-.animated-button .arr-2 {
-  left: -25%;
+.portal-button:hover,
+.animated-button:hover {
+  color: #101010;
+  letter-spacing: 3px;
 }
 
-.animated-button .circle {
-  position: absolute;
+.portal-button:hover::before,
+.animated-button:hover::before {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 20px;
-  height: 20px;
-  background-color: hsl(var(--primary));
-  border-radius: 50%;
-  opacity: 0;
-  transition: all 0.8s cubic-bezier(0.23, 1, 0.32, 1);
 }
 
-.animated-button .text {
+/* Uiverse-inspired consultation button */
+.consultation-button {
   position: relative;
-  z-index: 1;
-  transform: translateX(-8px);
-  transition: all 0.8s cubic-bezier(0.23, 1, 0.32, 1);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: 2px solid hsl(var(--primary));
+  color: hsl(var(--foreground));
+  font-size: 1.2rem;
+  font-weight: 500;
+  padding: 1rem 2rem;
+  border-radius: 0.5rem;
+  transition: all 0.3s;
+  overflow: hidden;
+  isolation: isolate;
+  cursor: pointer;
 }
 
-.animated-button:hover {
-  box-shadow: 0 0 0 12px transparent;
-  color: #212121;
+.consultation-button::before {
+  content: "";
+  height: 0%;
+  width: 0%;
+  border-radius: 50%;
+  top: 50%;
+  left: 50%;
+  z-index: -1;
+  position: absolute;
+  background-color: hsl(var(--primary));
+  transition: all 0.3s;
+}
+
+.consultation-button:hover {
+  border: 2px solid hsl(var(--primary));
+  color: #101010;
+  box-shadow: 0 0 0 2px rgba(255, 255, 0, 0.12);
+}
+
+.consultation-button:hover::before {
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  border-radius: 0.3rem;
+}
+
+.logo-wordmark {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.14em;
+  will-change: transform;
+}
+
+.logo-wordmark .logo-str {
+  display: inline-block;
+  color: hsl(var(--foreground));
+  animation: logoTextBreath 5.6s ease-in-out infinite;
+}
+
+.logo-wordmark .logo-mix {
+  display: inline-block;
+  color: #ef4444;
+  animation: logoTextBreath 5.6s ease-in-out infinite;
+  animation-delay: 0.28s;
+}
+
+@keyframes logoTextBreath {
+  0%, 100% {
+    transform: translateY(0);
+    text-shadow: 0 0 0 rgba(255, 255, 255, 0);
+  }
+  50% {
+    transform: translateY(-0.75px);
+    text-shadow: 0 0 8px rgba(255, 255, 255, 0.08);
+  }
+}
+
+/* Shared scrollbar utility for admin panels */
+.ticket-scroll {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.ticket-scroll::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+.message-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--primary)) hsl(var(--muted));
+  -ms-overflow-style: auto;
+  scrollbar-gutter: stable;
+}
+
+.message-scroll::-webkit-scrollbar {
+  width: 10px;
+}
+
+.message-scroll::-webkit-scrollbar-track {
+  background: hsl(var(--muted));
+}
+
+.message-scroll::-webkit-scrollbar-thumb {
+  background: hsl(var(--primary));
+  border-radius: 999px;
+  border: 2px solid hsl(var(--muted));
+}
+
+.nav_bar {
+  background-color: rgb(27, 27, 27);
+  position: relative;
+  display: flex;
+  transition: 0.4s;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  padding: 10px 10px;
   border-radius: 12px;
 }
 
-.animated-button:hover .arr-1 {
-  right: -25%;
+.bar1,
+.bar2,
+.bar3_h,
+.bar4 {
+  border-radius: 30px;
+  background-color: rgb(255, 255, 255);
+  width: 36px;
+  transition: 0.4s;
+  height: 3px;
 }
 
-.animated-button:hover .arr-2 {
-  left: 12px;
+.bar1 {
+  margin-bottom: 10px;
 }
 
-.animated-button:hover .text {
-  transform: translateX(8px);
+.bar2 {
+  position: absolute;
 }
 
-.animated-button:hover svg {
-  stroke: #212121;
+.bar4 {
+  margin-top: 10px;
 }
 
-.animated-button:active {
-  scale: 0.95;
-  box-shadow: 0 0 0 4px hsl(var(--primary));
+.nav_bar:hover,
+.nav_bar[data-open="true"] {
+  border-radius: 50px;
 }
 
-.animated-button:hover .circle {
-  width: 180px;
-  height: 180px;
-  opacity: 1;
+.nav_bar:hover .bar3_h,
+.nav_bar[data-open="true"] .bar3_h {
+  transform: rotate(-45deg);
+}
+
+.nav_bar:hover .bar2,
+.nav_bar[data-open="true"] .bar2 {
+  transform: rotate(45deg);
+}
+
+.nav_bar:hover .bar1,
+.nav_bar[data-open="true"] .bar1 {
+  opacity: 0;
+  width: 20px;
+}
+
+.nav_bar:hover .bar4,
+.nav_bar[data-open="true"] .bar4 {
+  opacity: 0;
+  width: 20px;
 }
 
 /* Uiverse-inspired social icons */

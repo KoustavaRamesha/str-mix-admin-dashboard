@@ -1,50 +1,44 @@
-/* From Uiverse.io by Navarog21 */
+/* From Uiverse.io by SujitAdroja */
 .consultation-button {
-  width: 10em;
   position: relative;
-  height: 3.5em;
-  border: 2px solid hsl(var(--primary));
-  outline: none;
-  background-color: rgba(0, 0, 0, 0.15);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: 2px solid #000814;
   color: white;
-  transition: transform 180ms ease, background-color 180ms ease, border-color 180ms ease;
-  border-radius: 0rem;
-  font-size: 16px;
-  font-weight: bold;
+  font-size: 1.2rem;
+  font-weight: 500;
+  padding: 1rem 2rem;
+  border-radius: 0.5rem;
+  transition: all 0.3s;
+  overflow: hidden;
+  isolation: isolate;
   cursor: pointer;
-}
-
-.consultation-button::after {
-  content: "";
-  position: absolute;
-  top: -10px;
-  left: 3%;
-  width: 95%;
-  height: 40%;
-  background-color: #212121;
-  transition: 0.5s;
-  transform-origin: center;
 }
 
 .consultation-button::before {
   content: "";
-  transform-origin: center;
+  height: 0%;
+  width: 0%;
+  border-radius: 50%;
+  top: 50%;
+  left: 50%;
+  z-index: -1;
   position: absolute;
-  top: 80%;
-  left: 3%;
-  width: 95%;
-  height: 40%;
-  background-color: #212121;
-  transition: 0.5s;
-}
-
-.consultation-button:hover::before,
-.consultation-button:hover::after {
-  transform: scale(0);
+  background-color: #494958;
+  transition: all 0.3s;
 }
 
 .consultation-button:hover {
-  background-color: rgba(234, 227, 26, 0.12);
-  transform: translateY(-1px);
-  box-shadow: 0 0 0 2px rgba(234, 227, 26, 0.18), inset 0 0 0 1px rgba(234, 227, 26, 0.12);
+  border: 2px solid #32323c;
+  color: white;
+}
+
+.consultation-button:hover::before {
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  border-radius: 0.3rem;
 }

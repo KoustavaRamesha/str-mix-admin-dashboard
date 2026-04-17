@@ -84,7 +84,7 @@ export default function AboutPage() {
               </div>
 
               <Reveal direction="right" duration={0.8}>
-                <div className="relative h-[600px] border-4 border-muted grayscale hover:grayscale-0 transition-all duration-300 shadow-xl">
+                <div className="relative h-[600px] border-4 border-muted transition-all duration-300 shadow-xl overflow-hidden">
                   <Image
                     src={siteContent?.aboutFeatureImage || "/flag.jpg"}
                     alt="STR mix flag"

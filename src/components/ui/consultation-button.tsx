@@ -1,19 +1,21 @@
 "use client"
 
-import "./consultation-button.css"
+import { cn } from "@/lib/utils"
 
 interface ConsultationButtonProps {
   onClick?: () => void
   children?: React.ReactNode
+  className?: string
 }
 
 export function ConsultationButton({ 
   onClick, 
-  children = "Start Consultation" 
+  children = "Get Consultation",
+  className
 }: ConsultationButtonProps) {
   return (
     <button 
-      className="consultation-button" 
+      className={cn("consultation-button", className)} 
       onClick={onClick}
     >
       {children}

@@ -1,6 +1,5 @@
 "use client"
 
-import { Button } from "@/components/ui/button"
 import Image from "next/image"
 import Link from "next/link"
 import { doc } from "firebase/firestore"
@@ -112,9 +111,9 @@ export default function ServicesPage() {
                           </li>
                         ))}
                       </ul>
-                      <Button asChild size="lg" className="rounded-none font-bold uppercase tracking-widest bg-primary text-primary-foreground h-12 px-8 mt-4">
-                        <Link href="/contact">Request Consultation</Link>
-                      </Button>
+                        <Link href="/contact" className="consultation-button mt-4">
+                          Request Consultation
+                        </Link>
                     </div>
                     <div className="flex-1 w-full aspect-[16/9] relative border-4 border-muted overflow-hidden group shadow-xl">
                       <Image

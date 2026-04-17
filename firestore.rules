@@ -144,12 +144,15 @@ service cloud.firestore {
     // Support tickets — validated on create
     match /support_tickets/{ticketId} {
       allow create: if
-        hasRequiredFields(['name', 'email', 'subject', 'body', 'status', 'createdAt'])
+        hasRequiredFields(['name', 'email', 'subject', 'body', 'status', 'createdAt', 'honeypot', 'submittedAtMs'])
         && isValidString(request.resource.data.name, 100)
         && isValidString(request.resource.data.email, 254)
         && isValidString(request.resource.data.subject, 200)
         && isValidString(request.resource.data.body, 5000)
-        && request.resource.data.status == 'open';
+        && request.resource.data.status == 'open'
+        && request.resource.data.honeypot == ''
+        && request.resource.data.submittedAtMs is int
+        && request.resource.data.submittedAtMs > 0;
       allow get, list: if isAdmin() || (isSignedIn() && resource.data.submittedById == request.auth.uid);
       allow update: if isAdmin() || (isSignedIn() && resource.data.submittedById == request.auth.uid);
       allow delete: if isAdmin();

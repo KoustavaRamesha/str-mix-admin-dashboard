@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { Mail, Phone, MapPin, Send, Loader2 } from "lucide-react"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useToast } from "@/hooks/use-toast"
 import { useFirestore, addDocumentNonBlocking } from "@/firebase"
 import { collection } from "firebase/firestore"
@@ -18,14 +18,52 @@ import dynamic from "next/dynamic"
 import { HeroBackgroundSlideshow } from "@/components/hero-background-slideshow"
 
 const LightRays = dynamic(() => import("@/components/ui/LightRays"), { ssr: false })
+const CONTACT_COOLDOWN_KEY = "strmix_contact_cooldown_until"
+const CONTACT_COOLDOWN_MS = 60_000
+const CONTACT_MESSAGE_MAX_LENGTH = 1000
 
 export default function ContactPage() {
   const db = useFirestore()
   const [loading, setLoading] = useState(false)
+  const [cooldownUntil, setCooldownUntil] = useState(0)
+  const [cooldownRemaining, setCooldownRemaining] = useState(0)
+  const [formStartedAtMs] = useState(() => Date.now())
+  const [message, setMessage] = useState("")
   const { toast } = useToast()
 
-  const handleSubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+    const stored = Number(window.localStorage.getItem(CONTACT_COOLDOWN_KEY) || "0")
+    if (stored > Date.now()) {
+      setCooldownUntil(stored)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!cooldownUntil) {
+      setCooldownRemaining(0)
+      return
+    }
+
+    const tick = () => {
+      setCooldownRemaining(Math.max(0, Math.ceil((cooldownUntil - Date.now()) / 1000)))
+    }
+
+    tick()
+    const timer = window.setInterval(tick, 1000)
+    return () => window.clearInterval(timer)
+  }, [cooldownUntil])
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (cooldownRemaining > 0) {
+      toast({
+        variant: "destructive",
+        title: "Please wait",
+        description: `You can send another message in ${cooldownRemaining}s.`,
+      })
+      return
+    }
+
     setLoading(true)
     
     const form = e.target as HTMLFormElement
@@ -36,7 +74,9 @@ export default function ContactPage() {
       email: formData.get('email') as string | null,
       phone: formData.get('phone') as string | null,
       subject: formData.get('subject') as string | null,
-      message: formData.get('message') as string | null,
+      message,
+      honeypot: formData.get('website') as string | null,
+      startedAtMs: Number(formData.get('startedAtMs') || formStartedAtMs),
     })
 
     if (!validation.success || !validation.data) {
@@ -51,21 +91,32 @@ export default function ContactPage() {
 
     const ticketData = {
       ...validation.data,
+      message: validation.data.body,
+      submittedAtMs: validation.data.submittedAtMs,
       status: 'open',
       createdAt: new Date().toISOString(),
     }
 
-    addDocumentNonBlocking(collection(db, 'support_tickets'), ticketData)
-      .then(() => {
-        toast({
-          title: "Transmission Received",
-          description: "Your project details have been queued for structural review.",
-        })
-        form.reset()
+    try {
+      await addDocumentNonBlocking(collection(db, 'support_tickets'), ticketData)
+      const nextAllowed = Date.now() + CONTACT_COOLDOWN_MS
+      window.localStorage.setItem(CONTACT_COOLDOWN_KEY, String(nextAllowed))
+      setCooldownUntil(nextAllowed)
+      toast({
+        title: "Transmission Received",
+        description: "Your project details have been queued for structural review.",
       })
-      .finally(() => {
-        setLoading(false)
+      form.reset()
+      setMessage("")
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Submission Failed",
+        description: "We could not send your message right now. Please try again.",
       })
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -152,11 +203,16 @@ export default function ContactPage() {
                   <CardTitle className="font-headline font-bold uppercase text-2xl text-white">Secure Contact Portal</CardTitle>
                   <CardDescription className="text-white/60">All communications are encrypted and queued for rapid response.</CardDescription>
                 </CardHeader>
-                <CardContent className="p-8">
-                  <form onSubmit={handleSubmit} className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="name" className="uppercase text-xs font-bold tracking-widest text-white/40">Full Name</Label>
+                  <CardContent className="p-8">
+                    <form onSubmit={handleSubmit} className="space-y-6">
+                      <input type="hidden" name="startedAtMs" value={formStartedAtMs.toString()} />
+                      <div className="sr-only" aria-hidden="true">
+                        <label htmlFor="website">Website</label>
+                        <input id="website" name="website" type="text" tabIndex={-1} autoComplete="off" />
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="name" className="uppercase text-xs font-bold tracking-widest text-white/40">Full Name</Label>
                         <Input id="name" name="name" placeholder="John Doe" required className="bg-white/5 border-white/10 rounded-none h-12 text-white placeholder:text-white/20 focus:border-primary/50 transition-colors" />
                       </div>
                       <div className="space-y-2">
@@ -176,15 +232,29 @@ export default function ContactPage() {
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="message" className="uppercase text-xs font-bold tracking-widest text-white/40">Project Details</Label>
-                      <Textarea id="message" name="message" placeholder="Describe your concrete needs..." required className="bg-white/5 border-white/10 rounded-none min-h-[150px] text-white placeholder:text-white/20 focus:border-primary/50 transition-colors" />
+                      <Textarea
+                        id="message"
+                        name="message"
+                        placeholder="Describe your concrete needs..."
+                        required
+                        maxLength={CONTACT_MESSAGE_MAX_LENGTH}
+                        value={message}
+                        onChange={(e) => setMessage(e.target.value)}
+                        className="bg-white/5 border-white/10 rounded-none min-h-[150px] text-white placeholder:text-white/20 focus:border-primary/50 transition-colors"
+                      />
+                      <p className="text-[10px] uppercase tracking-widest text-white/35 text-right">
+                        {message.length}/{CONTACT_MESSAGE_MAX_LENGTH} characters
+                      </p>
                     </div>
-                    <Button type="submit" className="w-full h-12 rounded-none bg-primary text-primary-foreground font-bold uppercase tracking-widest transition-all hover:scale-[1.02] hover:yellow-glow" disabled={loading}>
+                    <Button type="submit" className="w-full h-12 rounded-none bg-primary text-primary-foreground font-bold uppercase tracking-widest transition-all hover:scale-[1.02] hover:yellow-glow" disabled={loading || cooldownRemaining > 0}>
                       {loading ? (
                         <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                      ) : cooldownRemaining > 0 ? (
+                        <span className="mr-2 text-[10px] font-bold tracking-widest">WAIT {cooldownRemaining}s</span>
                       ) : (
                         <Send className="h-5 w-5 mr-2" />
                       )}
-                      Dispatch Message
+                      {cooldownRemaining > 0 ? "Cooling Down" : "Dispatch Message"}
                     </Button>
                     <p className="text-[10px] text-center text-muted-foreground uppercase tracking-widest">
                       All submissions are validated and sanitized before processing.
