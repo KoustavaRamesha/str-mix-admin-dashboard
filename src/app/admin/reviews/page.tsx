@@ -38,7 +38,7 @@ import { getStoredAdminGeminiApiKey } from "@/lib/admin-ai-key"
 import { isPendingReview, isApprovedReview, getReviewStatus } from "@/lib/review-status"
 import { useToast } from "@/hooks/use-toast"
 
-type TabValue = 'pending' | 'approved';
+type TabValue = 'pending' | 'approved' | 'rejected';
 
 export default function ReviewModeration() {
   const db = useFirestore()
@@ -62,14 +62,19 @@ export default function ReviewModeration() {
 
   const { data: reviews, isLoading: reviewsLoading } = useCollection(reviewsQuery);
 
-  // Split reviews into pending and approved
+  // Split reviews by moderation state
   const pendingReviews = reviews?.filter(isPendingReview) || [];
   const approvedReviews = reviews?.filter(isApprovedReview) || [];
   const rejectedReviews = reviews?.filter(r => getReviewStatus(r.status) === 'rejected') || [];
 
   // Get the active tab's reviews
   const getFilteredReviews = () => {
-    const source = activeTab === 'pending' ? pendingReviews : approvedReviews;
+    const source =
+      activeTab === 'pending'
+        ? pendingReviews
+        : activeTab === 'approved'
+          ? approvedReviews
+          : rejectedReviews;
     if (!searchQuery.trim()) return source;
     const q = searchQuery.toLowerCase();
     return source.filter(r => 
@@ -120,6 +125,18 @@ export default function ReviewModeration() {
     toast({
       title: "Approval Revoked",
       description: `${review.authorName}'s review moved back to pending.`,
+    });
+  }
+
+  const handleRestoreRejected = (review: any) => {
+    const adminRef = doc(db, 'admin_reviews', review.id);
+    const { id, ...reviewData } = review;
+    const updatedReview = { ...reviewData, status: 'pending', updatedAt: new Date().toISOString() };
+
+    setDocumentNonBlocking(adminRef, updatedReview, { merge: true });
+    toast({
+      title: "Review Restored",
+      description: `${review.authorName}'s review moved back to pending moderation.`,
     });
   }
 
@@ -233,7 +250,7 @@ export default function ReviewModeration() {
             </div>
           </CardContent>
         </Card>
-        <Card className="bg-card border-2 border-red-500/30">
+        <Card className="bg-card border-2 border-red-500/30 hover:border-red-500/60 transition-colors cursor-pointer" onClick={() => switchTab('rejected')}>
           <CardContent className="p-4 flex items-center gap-4">
             <div className="h-10 w-10 bg-red-500/10 border border-red-500/30 flex items-center justify-center">
               <XCircle className="h-5 w-5 text-red-500" />
@@ -286,6 +303,24 @@ export default function ReviewModeration() {
                 )}
               </span>
             </button>
+            <button
+              onClick={() => switchTab('rejected')}
+              className={`px-6 py-3 text-[10px] font-bold uppercase tracking-widest transition-all relative ${
+                activeTab === 'rejected'
+                  ? 'text-red-500 border-b-2 border-red-500 -mb-[2px]'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              <span className="flex items-center gap-2">
+                <XCircle className="h-3 w-3" />
+                Rejected Reviews
+                {rejectedReviews.length > 0 && (
+                  <Badge variant="secondary" className="bg-red-500/20 text-red-500 rounded-none text-[9px] px-1.5 h-4 font-bold">
+                    {rejectedReviews.length}
+                  </Badge>
+                )}
+              </span>
+            </button>
           </div>
 
           <Card className="bg-card border-2 border-muted overflow-hidden">
@@ -309,7 +344,7 @@ export default function ReviewModeration() {
               </div>
               <div className="flex gap-2">
                 <span className="text-[10px] font-bold uppercase text-muted-foreground flex items-center gap-1">
-                  {filteredReviews.length} {activeTab === 'pending' ? 'pending' : 'authorized'}
+                  {filteredReviews.length} {activeTab === 'pending' ? 'pending' : activeTab === 'approved' ? 'authorized' : 'rejected'}
                 </span>
               </div>
             </div>
@@ -327,7 +362,9 @@ export default function ReviewModeration() {
                 <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
                   {activeTab === 'pending' 
                     ? 'All reviews have been moderated. No pending actions.' 
-                    : 'No authorized reviews yet. Approve pending reviews to see them here.'}
+                    : activeTab === 'approved'
+                      ? 'No authorized reviews yet. Approve pending reviews to see them here.'
+                      : 'No rejected reviews yet. Reject pending reviews to see them here.'}
                 </p>
               </div>
             ) : (
@@ -380,9 +417,13 @@ export default function ReviewModeration() {
                           <Badge variant="outline" className="rounded-none text-[8px] font-bold uppercase border-yellow-500/50 text-yellow-500 bg-yellow-500/10">
                             <Clock className="h-2.5 w-2.5 mr-1" /> Pending
                           </Badge>
-                        ) : (
+                        ) : activeTab === 'approved' ? (
                           <Badge variant="outline" className="rounded-none text-[8px] font-bold uppercase border-green-500/50 text-green-500 bg-green-500/10">
                             <CheckCircle className="h-2.5 w-2.5 mr-1" /> Authorized
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline" className="rounded-none text-[8px] font-bold uppercase border-red-500/50 text-red-500 bg-red-500/10">
+                            <XCircle className="h-2.5 w-2.5 mr-1" /> Rejected
                           </Badge>
                         )}
                       </TableCell>
@@ -409,6 +450,16 @@ export default function ReviewModeration() {
                                 <XCircle className="h-3 w-3" />
                               </Button>
                             </>
+                          ) : activeTab === 'rejected' ? (
+                            <Button 
+                              size="icon" 
+                              variant="ghost" 
+                              className="h-7 w-7 text-yellow-500 hover:bg-yellow-500/10"
+                              onClick={() => handleRestoreRejected(review)}
+                              title="Restore to pending"
+                            >
+                              <Undo2 className="h-3 w-3" />
+                            </Button>
                           ) : (
                             <Button 
                               size="icon" 

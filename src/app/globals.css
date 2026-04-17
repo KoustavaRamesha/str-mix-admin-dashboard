@@ -81,14 +81,14 @@ section {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 150px;
-  height: 50px;
-  padding: 0 24px;
+  width: 118px;
+  height: 40px;
+  padding: 0 16px;
   border: 2px solid hsl(var(--primary));
   border-radius: 50px;
   background-color: transparent;
   color: hsl(var(--foreground));
-  font-size: 16px;
+  font-size: 12px;
   font-weight: 500;
   text-transform: uppercase;
   transition: 300ms ease;
@@ -101,8 +101,8 @@ section {
   content: "";
   position: absolute;
   z-index: -1;
-  width: 150px;
-  height: 150px;
+  width: 118px;
+  height: 118px;
   border-radius: 50%;
   background-color: hsl(var(--primary));
   top: 100%;
@@ -214,6 +214,27 @@ section {
 .ticket-scroll::-webkit-scrollbar {
   width: 0;
   height: 0;
+}
+
+.ticket-list-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--primary)) hsl(var(--muted));
+  -ms-overflow-style: auto;
+  scrollbar-gutter: stable;
+}
+
+.ticket-list-scroll::-webkit-scrollbar {
+  width: 10px;
+}
+
+.ticket-list-scroll::-webkit-scrollbar-track {
+  background: hsl(var(--muted));
+}
+
+.ticket-list-scroll::-webkit-scrollbar-thumb {
+  background: hsl(var(--primary));
+  border-radius: 999px;
+  border: 2px solid hsl(var(--muted));
 }
 
 .message-scroll {

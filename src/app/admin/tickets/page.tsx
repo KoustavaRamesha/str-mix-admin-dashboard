@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import {
+  deleteDocumentNonBlocking,
   updateDocumentNonBlocking,
   useCollection,
   useFirestore,
@@ -21,6 +22,7 @@ import {
   Loader2,
   Phone,
   Search,
+  Trash2,
   User,
 } from "lucide-react"
 
@@ -83,6 +85,16 @@ export default function TicketSystem() {
     })
   }
 
+  const handleDelete = (ticketId: string) => {
+    if (!window.confirm("Delete this ticket permanently?")) return
+
+    deleteDocumentNonBlocking(doc(db, "support_tickets", ticketId))
+
+    if (activeTicket?.id === ticketId) {
+      setActiveTicket(null)
+    }
+  }
+
   const activeCreatedAt = activeTicket?.createdAt
     ? new Date(activeTicket.createdAt).toLocaleString()
     : "Unknown"
@@ -104,7 +116,7 @@ export default function TicketSystem() {
         </Button>
       </div>
 
-      <div className="grid min-h-0 grid-cols-1 gap-6 lg:grid-cols-[360px_minmax(0,1fr)]">
+      <div className="grid min-h-0 flex-1 grid-cols-1 gap-6 overflow-hidden lg:grid-cols-[360px_minmax(0,1fr)]">
         <Card className="flex min-h-0 flex-col overflow-hidden border-2 border-muted bg-card">
           <div className="shrink-0 border-b-2 border-muted p-4">
             <div className="relative">
@@ -118,7 +130,7 @@ export default function TicketSystem() {
             </div>
           </div>
 
-          <div className="ticket-scroll min-h-0 flex-1 overflow-y-auto">
+          <div className="ticket-list-scroll min-h-0 flex-1 overflow-y-scroll overscroll-contain">
             {ticketsLoading ? (
               <div className="p-8 text-center">
                 <Loader2 className="mx-auto h-6 w-6 animate-spin text-primary" />
@@ -132,11 +144,18 @@ export default function TicketSystem() {
                 const isActive = activeTicket?.id === ticket.id
 
                 return (
-                  <button
+                  <div
                     key={ticket.id}
-                    type="button"
+                    role="button"
+                    tabIndex={0}
                     onClick={() => setActiveTicket(ticket)}
-                    className={`block w-full border-b border-muted p-4 text-left transition-colors hover:bg-muted/10 ${
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault()
+                        setActiveTicket(ticket)
+                      }
+                    }}
+                    className={`group block w-full cursor-pointer border-b border-muted p-4 text-left transition-colors hover:bg-muted/10 ${
                       isActive ? "bg-primary/10" : ""
                     }`}
                   >
@@ -166,11 +185,26 @@ export default function TicketSystem() {
                       <span className="truncate text-[10px] font-bold uppercase text-muted-foreground">
                         {ticket.name}
                       </span>
-                      <span className="shrink-0 text-[9px] text-muted-foreground">
-                        {new Date(ticket.createdAt).toLocaleDateString()}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className="shrink-0 text-[9px] text-muted-foreground">
+                          {new Date(ticket.createdAt).toLocaleDateString()}
+                        </span>
+                        <Button
+                          type="button"
+                          size="icon"
+                          variant="ghost"
+                          className="h-7 w-7 rounded-none text-muted-foreground opacity-0 transition-opacity hover:bg-destructive/10 hover:text-destructive group-hover:opacity-100"
+                          onClick={(event) => {
+                            event.stopPropagation()
+                            handleDelete(ticket.id)
+                          }}
+                          aria-label={`Delete ticket ${ticket.id}`}
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
                     </div>
-                  </button>
+                  </div>
                 )
               })
             )}

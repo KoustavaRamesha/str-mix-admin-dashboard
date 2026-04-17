@@ -91,17 +91,17 @@ export function Navbar() {
         <div className="hidden md:flex items-center gap-6 flex-1 justify-end">
           <motion.div
             variants={itemVariants}
-            className="relative flex h-[60px] flex-1 min-w-0 max-w-[820px] overflow-hidden rounded-full border border-primary/30 bg-transparent backdrop-blur-xl"
+            className="relative flex h-[40px] flex-1 min-w-0 max-w-[800px] overflow-hidden rounded-full border border-primary/30 bg-transparent backdrop-blur-xl"
             style={{ width: "min(100%, 820px)" }}
           >
-            <div className="absolute inset-0 flex items-center gap-1 px-2 py-2">
+            <div className="absolute inset-0 flex items-center gap-1 px-1 py-0.5">
               {navItems.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
                   prefetch={true}
                   className={cn(
-                    "relative z-10 flex h-full flex-1 min-w-0 items-center justify-center rounded-[10px] px-1 text-center text-[0.7rem] font-bold uppercase tracking-[0.14em] text-white transition-colors duration-150 hover:bg-[hsl(var(--primary))] hover:text-[#101010]",
+                    "relative z-10 flex h-full flex-1 min-w-0 items-center justify-center rounded-[8px] px-1 text-center text-[0.58rem] font-bold uppercase tracking-[0.14em] text-white transition-colors duration-150 hover:bg-[hsl(var(--primary))] hover:text-[#101010]",
                     pathname === item.href && "bg-[hsl(var(--primary))] text-[#101010]"
                   )}
                   onMouseEnter={() => setHoveredNavIndex(navItems.findIndex((navItem) => navItem.href === item.href))}
@@ -153,7 +153,7 @@ export function Navbar() {
             </div>
           </motion.div>
           <motion.div variants={itemVariants}>
-            <PortalButton />
+            <PortalButton className="h-[40px] w-[118px] text-[12px]" />
           </motion.div>
         </div>
 
