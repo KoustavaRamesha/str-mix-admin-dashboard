@@ -25,7 +25,7 @@ const spaceGrotesk = Space_Grotesk({
 });
 
 export const metadata: Metadata = {
-  title: 'STR mix Digital | Industrial Concrete Solutions',
+  title: 'STR mix | Industrial Concrete Solutions',
   description: 'Built for strength, designed for precision. Premium concrete services and project management.',
   icons: {
     icon: [
